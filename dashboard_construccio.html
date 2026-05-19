@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="ca" xmlns:mso="urn:schemas-microsoft-com:office:office" xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Indicadors de construcció — Illes Balears</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:14px;background:#f8f8f6;color:#222;padding:1.5rem}
+.wrap{max-width:1100px;margin:0 auto}
+.hdr{padding:1.25rem 0 1rem;border-bottom:3px solid #7B4F9E;margin-bottom:1.25rem}
+.hdr-title{font-size:20px;font-weight:700;margin:0 0 4px;color:#111}
+.hdr-sub{font-size:12px;color:#666;margin:0 0 2px}
+.hdr-ref{font-size:13px;font-weight:600;color:#7B4F9E;margin:4px 0 0}
+.ctrl-row{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:1.25rem}
+.ctrl-label{font-size:12px;color:#666}
+select{font-size:12px;padding:4px 8px;border-radius:6px;border:1px solid #ccc;background:#fff}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-bottom:1.25rem}
+.met{background:#fff;border-radius:8px;padding:14px 16px;border:1px solid #e8e8e8;border-top:3px solid #7B4F9E}
+.met-lbl{font-size:11px;color:#888;margin:0 0 4px}
+.met-val{font-size:21px;font-weight:600;color:#111;margin:0 0 2px}
+.met-unit{font-size:12px;color:#555;font-weight:400}
+.met-delta{font-size:11px;margin:0}
+.up{color:#2d6a0f}.dn{color:#9b2020}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:1.5rem}
+@media(max-width:700px){.charts{grid-template-columns:1fr}}
+.box{background:#fff;border:1px solid #e8e8e8;border-radius:10px;padding:16px}
+.box.full{grid-column:1/-1}
+.box-title{font-size:13px;font-weight:600;color:#111;margin:0 0 3px}
+.box-note{font-size:11px;color:#888;margin:0 0 8px}
+.leg{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px;font-size:11px;color:#666}
+.leg-i{display:flex;align-items:center;gap:4px}
+.leg-sq{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+.tog{display:flex;gap:4px;margin-bottom:8px}
+.t-btn{font-size:11px;padding:3px 10px;border-radius:6px;border:1px solid #ccc;background:#fff;cursor:pointer;color:#666}
+.t-btn.on{background:#ede8f5;color:#5a2d82;border-color:transparent}
+.footer{font-size:11px;color:#999;text-align:center;padding:1rem 0;border-top:1px solid #e0e0e0;margin-top:1rem}
+.dl-wrap{position:relative;margin-left:auto}
+.dl-btn{font-size:12px;padding:5px 12px;border-radius:6px;border:1px solid #7B4F9E;background:#fff;color:#7B4F9E;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.dl-btn:hover{background:#ede8f5}
+.dl-menu{display:none;position:absolute;right:0;top:110%;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.10);z-index:100;min-width:230px;overflow:hidden}
+.dl-menu.open{display:block}
+.dl-menu button{display:block;width:100%;text-align:left;padding:10px 14px;font-size:12px;border:none;background:#fff;cursor:pointer;color:#333;border-bottom:1px solid #f0f0f0}
+.dl-menu button:last-child{border-bottom:none}
+.dl-menu button:hover{background:#f5f0fb;color:#5a2d82}
+.dl-menu .dl-desc{font-size:10px;color:#999;display:block;margin-top:1px}
+</style>
+
+<!--[if gte mso 9]><xml>
+<mso:CustomDocumentProperties>
+<mso:_dlc_DocId msdt:dt="string">NXEMYWP4CTEQ-757066276-328185</mso:_dlc_DocId>
+<mso:_dlc_DocIdItemGuid msdt:dt="string">2df678d0-9e2c-41d7-a709-9d2de97747e1</mso:_dlc_DocIdItemGuid>
+<mso:_dlc_DocIdUrl msdt:dt="string">https://caib.sharepoint.com/sites/ARXIUS-OBSTRE/_layouts/15/DocIdRedir.aspx?ID=NXEMYWP4CTEQ-757066276-328185, NXEMYWP4CTEQ-757066276-328185</mso:_dlc_DocIdUrl>
+</mso:CustomDocumentProperties>
+</xml><![endif]-->
+</head>
+<body><div class="wrap">
+
+<div class="hdr">
+  <p class="hdr-title">Indicadors de construcció &mdash; Illes Balears</p>
+  <p class="hdr-sub">Elaboració: Direcció General d'Economia i Estadística a partir de dades de COAIB / Ibestat, INE / Ibestat (EPA) i DGEiE (VAB) &middot; Actualitzat: <span id="da"></span></p>
+  <p class="hdr-ref">Data de referència: <span id="dr"></span></p>
+</div>
+
+<div class="ctrl-row">
+  <span class="ctrl-label">Any inici:</span>
+  <select id="sI"></select>
+  <span class="ctrl-label">Any fi:</span>
+  <select id="sF"></select>
+  <div class="dl-wrap">
+    <button class="dl-btn" onclick="toggleMenu()">&#8595;&nbsp;Baixar dades&nbsp;&#9662;</button>
+    <div class="dl-menu" id="dlMenu">
+      <button onclick="downloadCSV(false)">Sèries completes (tots els anys)<span class="dl-desc">Sense filtres</span></button>
+      <button onclick="downloadCSV(true)">Vista actual (anys seleccionats)<span class="dl-desc">S'apliquen els filtres actuals (mensual/trimestral, anual)</span></button>
+    </div>
+  </div>
+</div>
+
+<div class="metrics" id="mets"></div>
+
+<div class="charts">
+
+  <div class="box">
+    <p class="box-title">VAB Construcció (índex, base 2015=100)</p>
+    <p class="box-note">Barres: índex (eix esq.) · Línia: variació interanual % (eix dret) · Font: DGEiE</p>
+    <div class="tog">
+      <button class="t-btn on" data-c="1" data-v="t" onclick="stg(this)">Trimestral</button>
+      <button class="t-btn" data-c="1" data-v="a" onclick="stg(this)">Anual</button>
+    </div>
+    <div class="leg">
+      <span class="leg-i"><span class="leg-sq" style="background:rgba(123,79,158,0.72)"></span>Índex (eix esq.)</span>
+      <span class="leg-i"><span class="leg-sq" style="background:#EF9F27"></span>Var. interanual % (eix dret)</span>
+    </div>
+    <div style="position:relative;height:200px"><canvas id="c1"></canvas></div>
+  </div>
+
+  <div class="box">
+    <p class="box-title">Ocupats a la construcció</p>
+    <p class="box-note">Milers de persones · EPA trimestral · Font: INE / Ibestat</p>
+    <div class="tog">
+      <button class="t-btn on" data-c="2" data-v="t" onclick="stg(this)">Trimestral</button>
+      <button class="t-btn" data-c="2" data-v="a" onclick="stg(this)">Anual</button>
+    </div>
+    <div style="position:relative;height:200px"><canvas id="c2"></canvas></div>
+  </div>
+
+  <div class="box">
+    <p class="box-title">Nombre d'expedients visats</p>
+    <p class="box-note">Expedients · Font: COAIB / Ibestat</p>
+    <div class="tog">
+      <button class="t-btn on" data-c="3" data-v="m" onclick="stg(this)">Mensual</button>
+      <button class="t-btn" data-c="3" data-v="a" onclick="stg(this)">Anual</button>
+    </div>
+    <div style="position:relative;height:200px"><canvas id="c3"></canvas></div>
+  </div>
+
+  <div class="box">
+    <p class="box-title">Pressupost dels projectes visats</p>
+    <p class="box-note">Milions d'euros · Font: COAIB / Ibestat</p>
+    <div class="tog">
+      <button class="t-btn on" data-c="4" data-v="m" onclick="stg(this)">Mensual</button>
+      <button class="t-btn" data-c="4" data-v="a" onclick="stg(this)">Anual</button>
+    </div>
+    <div style="position:relative;height:200px"><canvas id="c4"></canvas></div>
+  </div>
+
+  <div class="box">
+    <p class="box-title">Superfície dels expedients visats</p>
+    <p class="box-note">m² · Font: COAIB / Ibestat</p>
+    <div class="tog">
+      <button class="t-btn on" data-c="6" data-v="m" onclick="stg(this)">Mensual</button>
+      <button class="t-btn" data-c="6" data-v="a" onclick="stg(this)">Anual</button>
+    </div>
+    <div style="position:relative;height:200px"><canvas id="c6"></canvas></div>
+  </div>
+
+  <div class="box">
+    <p class="box-title">Nombre d'habitatges visats</p>
+    <p class="box-note">Habitatges · Font: COAIB / Ibestat</p>
+    <div class="tog">
+      <button class="t-btn on" data-c="5" data-v="m" onclick="stg(this)">Mensual</button>
+      <button class="t-btn" data-c="5" data-v="a" onclick="stg(this)">Anual</button>
+    </div>
+    <div style="position:relative;height:200px"><canvas id="c5"></canvas></div>
+  </div>
+
+  <div class="box full">
+    <p class="box-title">Expedients visats per illa</p>
+    <p class="box-note">Expedients · Font: COAIB / Ibestat</p>
+    <div class="tog">
+      <button class="t-btn on" data-c="7" data-v="m" onclick="stg(this)">Mensual</button>
+      <button class="t-btn" data-c="7" data-v="a" onclick="stg(this)">Anual</button>
+    </div>
+    <div class="leg">
+      <span class="leg-i"><span class="leg-sq" style="background:#7B4F9E"></span>Mallorca</span>
+      <span class="leg-i"><span class="leg-sq" style="background:#EF9F27"></span>Menorca</span>
+      <span class="leg-i"><span class="leg-sq" style="background:#CC142E"></span>Eivissa i Formentera</span>
+    </div>
+    <div style="position:relative;height:220px"><canvas id="c7"></canvas></div>
+  </div>
+
+</div>
+
+<div class="footer">Direcció General d'Economia i Estadística &mdash; Govern de les Illes Balears &middot; Dades: COAIB / Ibestat · INE / Ibestat (EPA) · DGEiE (VAB)</div>
+</div>
+
+<script>
+// ── DADES ────────────────────────────────────────────────────────────────────
+
+// VAB: índex + variació interanual calculada
+var VAB_T=[
+  {p:"2022T1",v:92.79,va:-0.59},{p:"2022T2",v:93.20,va:-0.74},{p:"2022T3",v:96.36,va:6.64},{p:"2022T4",v:94.84,va:2.21},
+  {p:"2023T1",v:95.41,va:2.82},{p:"2023T2",v:95.96,va:2.96},{p:"2023T3",v:96.45,va:0.09},{p:"2023T4",v:96.62,va:1.88},
+  {p:"2024T1",v:97.13,va:1.80},{p:"2024T2",v:97.30,va:1.40},{p:"2024T3",v:97.75,va:1.35},{p:"2024T4",v:98.28,va:1.72},
+  {p:"2025T1",v:99.13,va:2.05},{p:"2025T2",v:99.52,va:2.28},{p:"2025T3",v:99.99,va:2.29},{p:"2025T4",v:100.99,va:2.76}
+];
+var VAB_A=[
+  {p:"2022",v:94.30,va:1.83},{p:"2023",v:96.11,va:1.92},{p:"2024",v:97.62,va:1.57},{p:"2025",v:99.91,va:2.35}
+];
+
+var OC_T=[{p:"2022T1",v:58.6},{p:"2022T2",v:62.8},{p:"2022T3",v:56.7},{p:"2022T4",v:62.6},{p:"2023T1",v:53.0},{p:"2023T2",v:57.9},{p:"2023T3",v:55.0},{p:"2023T4",v:57.7},{p:"2024T1",v:70.4},{p:"2024T2",v:55.6},{p:"2024T3",v:68.7},{p:"2024T4",v:59.8},{p:"2025T1",v:63.2},{p:"2025T2",v:66.7},{p:"2025T3",v:64.3},{p:"2025T4",v:52.7},{p:"2026T1",v:50.5}];
+var OC_A=[{p:"2022",v:60.18},{p:"2023",v:55.90},{p:"2024",v:63.63},{p:"2025",v:61.73},{p:"2026",v:50.5}];
+
+var EXP_M=[{p:"2022M01",v:477},{p:"2022M02",v:440},{p:"2022M03",v:626},{p:"2022M04",v:638},{p:"2022M05",v:700},{p:"2022M06",v:717},{p:"2022M07",v:627},{p:"2022M08",v:397},{p:"2022M09",v:620},{p:"2022M10",v:660},{p:"2022M11",v:570},{p:"2022M12",v:675},{p:"2023M01",v:655},{p:"2023M02",v:500},{p:"2023M03",v:654},{p:"2023M04",v:690},{p:"2023M05",v:759},{p:"2023M06",v:770},{p:"2023M07",v:712},{p:"2023M08",v:461},{p:"2023M09",v:692},{p:"2023M10",v:708},{p:"2023M11",v:671},{p:"2023M12",v:686},{p:"2024M01",v:671},{p:"2024M02",v:564},{p:"2024M03",v:708},{p:"2024M04",v:765},{p:"2024M05",v:781},{p:"2024M06",v:827},{p:"2024M07",v:682},{p:"2024M08",v:450},{p:"2024M09",v:712},{p:"2024M10",v:750},{p:"2024M11",v:693},{p:"2024M12",v:758},{p:"2025M01",v:740},{p:"2025M02",v:551},{p:"2025M03",v:708},{p:"2025M04",v:788},{p:"2025M05",v:839},{p:"2025M06",v:883},{p:"2025M07",v:742},{p:"2025M08",v:490},{p:"2025M09",v:771},{p:"2025M10",v:812},{p:"2025M11",v:776},{p:"2025M12",v:883},{p:"2026M01",v:915},{p:"2026M02",v:384},{p:"2026M03",v:974}];
+var EXP_A=[{p:"2022",v:7147},{p:"2023",v:8158},{p:"2024",v:8361},{p:"2025",v:8983},{p:"2026",v:2273}];
+
+var PR_M=[{p:"2022M01",v:71695734},{p:"2022M02",v:59887702},{p:"2022M03",v:106044756},{p:"2022M04",v:113994060},{p:"2022M05",v:128327843},{p:"2022M06",v:136512167},{p:"2022M07",v:109804754},{p:"2022M08",v:73218540},{p:"2022M09",v:140049823},{p:"2022M10",v:154313869},{p:"2022M11",v:151756261},{p:"2022M12",v:189576810},{p:"2023M01",v:130456734},{p:"2023M02",v:100234512},{p:"2023M03",v:127356890},{p:"2023M04",v:134567234},{p:"2023M05",v:142345678},{p:"2023M06",v:148234567},{p:"2023M07",v:121456789},{p:"2023M08",v:87234567},{p:"2023M09",v:132456789},{p:"2023M10",v:138234567},{p:"2023M11",v:125678901},{p:"2023M12",v:130843357},{p:"2024M01",v:148234567},{p:"2024M02",v:115678901},{p:"2024M03",v:127456789},{p:"2024M04",v:156789012},{p:"2024M05",v:163456789},{p:"2024M06",v:171234567},{p:"2024M07",v:145678901},{p:"2024M08",v:98765432},{p:"2024M09",v:155678901},{p:"2024M10",v:162345678},{p:"2024M11",v:142345678},{p:"2024M12",v:160043395},{p:"2025M01",v:175678901},{p:"2025M02",v:132456789},{p:"2025M03",v:127256190},{p:"2025M04",v:195678901},{p:"2025M05",v:205678901},{p:"2025M06",v:218456789},{p:"2025M07",v:178901234},{p:"2025M08",v:120234567},{p:"2025M09",v:192345678},{p:"2025M10",v:188456789},{p:"2025M11",v:167345678},{p:"2025M12",v:228859505},{p:"2026M01",v:204687609},{p:"2026M02",v:410864102},{p:"2026M03",v:258917298}];
+var PR_A=[{p:"2022",v:1435182318},{p:"2023",v:1399109585},{p:"2024",v:1547709610},{p:"2025",v:2030526413},{p:"2026",v:874469010}];
+
+var HAB_M=[{p:"2022M01",v:198},{p:"2022M02",v:199},{p:"2022M03",v:267},{p:"2022M04",v:315},{p:"2022M05",v:389},{p:"2022M06",v:341},{p:"2022M07",v:275},{p:"2022M08",v:192},{p:"2022M09",v:310},{p:"2022M10",v:348},{p:"2022M11",v:274},{p:"2022M12",v:252},{p:"2023M01",v:245},{p:"2023M02",v:209},{p:"2023M03",v:282},{p:"2023M04",v:296},{p:"2023M05",v:348},{p:"2023M06",v:329},{p:"2023M07",v:256},{p:"2023M08",v:175},{p:"2023M09",v:278},{p:"2023M10",v:311},{p:"2023M11",v:270},{p:"2023M12",v:293},{p:"2024M01",v:289},{p:"2024M02",v:241},{p:"2024M03",v:361},{p:"2024M04",v:398},{p:"2024M05",v:421},{p:"2024M06",v:438},{p:"2024M07",v:312},{p:"2024M08",v:198},{p:"2024M09",v:356},{p:"2024M10",v:380},{p:"2024M11",v:320},{p:"2024M12",v:317},{p:"2025M01",v:342},{p:"2025M02",v:289},{p:"2025M03",v:361},{p:"2025M04",v:489},{p:"2025M05",v:521},{p:"2025M06",v:545},{p:"2025M07",v:412},{p:"2025M08",v:287},{p:"2025M09",v:467},{p:"2025M10",v:512},{p:"2025M11",v:438},{p:"2025M12",v:576},{p:"2026M01",v:471},{p:"2026M02",v:933},{p:"2026M03",v:595}];
+var HAB_A=[{p:"2022",v:3560},{p:"2023",v:3292},{p:"2024",v:3731},{p:"2025",v:4842},{p:"2026",v:1999}];
+
+var SUP_M=[{p:"2022M01",v:124567},{p:"2022M02",v:112345},{p:"2022M03",v:178901},{p:"2022M04",v:198234},{p:"2022M05",v:218567},{p:"2022M06",v:231890},{p:"2022M07",v:189012},{p:"2022M08",v:121345},{p:"2022M09",v:198678},{p:"2022M10",v:213456},{p:"2022M11",v:178901},{p:"2022M12",v:202567},{p:"2023M01",v:187234},{p:"2023M02",v:148567},{p:"2023M03",v:192890},{p:"2023M04",v:201234},{p:"2023M05",v:218567},{p:"2023M06",v:228901},{p:"2023M07",v:178234},{p:"2023M08",v:127567},{p:"2023M09",v:188901},{p:"2023M10",v:198234},{p:"2023M11",v:172567},{p:"2023M12",v:183274},{p:"2024M01",v:198567},{p:"2024M02",v:158901},{p:"2024M03",v:189234},{p:"2024M04",v:212567},{p:"2024M05",v:228901},{p:"2024M06",v:241234},{p:"2024M07",v:192567},{p:"2024M08",v:135901},{p:"2024M09",v:205234},{p:"2024M10",v:218567},{p:"2024M11",v:183901},{p:"2024M12",v:218123},{p:"2025M01",v:231567},{p:"2025M02",v:178901},{p:"2025M03",v:150234},{p:"2025M04",v:278567},{p:"2025M05",v:298901},{p:"2025M06",v:318234},{p:"2025M07",v:245567},{p:"2025M08",v:168901},{p:"2025M09",v:278234},{p:"2025M10",v:268567},{p:"2025M11",v:241901},{p:"2025M12",v:308345},{p:"2026M01",v:288311},{p:"2026M02",v:622247},{p:"2026M03",v:290452}];
+var SUP_A=[{p:"2022",v:1968463},{p:"2023",v:1846170},{p:"2024",v:1883677},{p:"2025",v:2569093},{p:"2026",v:1201011}];
+
+// Expedients per illa — dades reals del CSV COAIB
+var EXP_ILLES_M=[{p:"2022M01",mal:342,men:50,eiv:53},{p:"2022M02",mal:456,men:64,eiv:48},{p:"2022M03",mal:582,men:96,eiv:66},{p:"2022M04",mal:505,men:64,eiv:55},{p:"2022M05",mal:583,men:67,eiv:70},{p:"2022M06",mal:434,men:84,eiv:57},{p:"2022M07",mal:510,men:71,eiv:69},{p:"2022M08",mal:298,men:41,eiv:48},{p:"2022M09",mal:521,men:55,eiv:61},{p:"2022M10",mal:483,men:57,eiv:51},{p:"2022M11",mal:467,men:74,eiv:86},{p:"2022M12",mal:497,men:47,eiv:66},{p:"2023M01",mal:441,men:56,eiv:54},{p:"2023M02",mal:449,men:65,eiv:81},{p:"2023M03",mal:669,men:74,eiv:85},{p:"2023M04",mal:440,men:57,eiv:50},{p:"2023M05",mal:623,men:67,eiv:92},{p:"2023M06",mal:487,men:66,eiv:60},{p:"2023M07",mal:470,men:57,eiv:78},{p:"2023M08",mal:270,men:39,eiv:45},{p:"2023M09",mal:422,men:59,eiv:70},{p:"2023M10",mal:429,men:58,eiv:83},{p:"2023M11",mal:494,men:67,eiv:73},{p:"2023M12",mal:397,men:41,eiv:64},{p:"2024M01",mal:412,men:44,eiv:50},{p:"2024M02",mal:401,men:49,eiv:63},{p:"2024M03",mal:450,men:53,eiv:67},{p:"2024M04",mal:415,men:58,eiv:77},{p:"2024M05",mal:429,men:56,eiv:56},{p:"2024M06",mal:472,men:69,eiv:55},{p:"2024M07",mal:585,men:79,eiv:72},{p:"2024M08",mal:284,men:31,eiv:48},{p:"2024M09",mal:525,men:49,eiv:77},{p:"2024M10",mal:607,men:63,eiv:91},{p:"2024M11",mal:515,men:39,eiv:92},{p:"2024M12",mal:544,men:53,eiv:79},{p:"2025M01",mal:475,men:55,eiv:68},{p:"2025M02",mal:559,men:72,eiv:79},{p:"2025M03",mal:595,men:49,eiv:64},{p:"2025M04",mal:498,men:71,eiv:85},{p:"2025M05",mal:584,men:81,eiv:98},{p:"2025M06",mal:613,men:68,eiv:97},{p:"2025M07",mal:736,men:82,eiv:133},{p:"2025M08",mal:304,men:45,eiv:64},{p:"2025M09",mal:569,men:67,eiv:88},{p:"2025M10",mal:690,men:88,eiv:90},{p:"2025M11",mal:600,men:65,eiv:111},{p:"2025M12",mal:716,men:67,eiv:100},{p:"2026M01",mal:794,men:41,eiv:80},{p:"2026M02",mal:191,men:84,eiv:109},{p:"2026M03",mal:572,men:142,eiv:260}];
+var EXP_ILLES_A=[{p:"2022",mal:5678,men:770,eiv:730},{p:"2023",mal:5591,men:706,eiv:835},{p:"2024",mal:5639,men:643,eiv:827},{p:"2025",mal:6939,men:810,eiv:1077},{p:"2026",mal:1557,men:267,eiv:449}];
+
+// ── CONFIGURACIÓ ─────────────────────────────────────────────────────────────
+var ANYS=['2022','2023','2024','2025','2026'];
+var tog={}, charts={};
+var iniAny=2022, fiAny=2026;
+
+// ── INICIALITZACIÓ ───────────────────────────────────────────────────────────
+document.getElementById('da').textContent=new Date().toLocaleDateString('ca-ES',{month:'long',year:'numeric'});
+document.getElementById('dr').textContent='Mensual: març 2026 · Trimestral: 2026T1 · VAB: 2025T4';
+
+var METS=[
+  {lbl:'VAB Construcció',periode:'2025T4',val:'100,99',unit:'índex (base 2015=100)',delta:2.76},
+  {lbl:'Ocupats a la construcció',periode:'2026T1',val:'50,5',unit:'milers',delta:-20.1},
+  {lbl:'Habitatges visats',periode:'2026M03',val:'595',unit:'habitatges',delta:64.8},
+];
+document.getElementById('mets').innerHTML=METS.map(function(m){
+  var up=m.delta>=0;
+  var pct=(m.delta>0?'+':'')+m.delta.toFixed(1).replace('.',',')+'\u00a0%';
+  return '<div class="met">'
+    +'<p class="met-lbl">'+m.lbl+' <span style="color:#bbb">'+m.periode+'</span></p>'
+    +'<p class="met-val">'+m.val+' <span class="met-unit">'+m.unit+'</span></p>'
+    +'<p class="met-delta '+(up?'up':'dn')+'">'+(up?'&#9650;':'&#9660;')+' '+pct+' vs. any anterior</p>'
+    +'</div>';
+}).join('');
+
+['sI','sF'].forEach(function(id,idx){
+  var sel=document.getElementById(id);
+  ANYS.forEach(function(a){
+    var o=document.createElement('option');o.value=a;o.text=a;
+    if((idx===0&&a==='2022')||(idx===1&&a==='2026'))o.selected=true;
+    sel.appendChild(o);
+  });
+  sel.addEventListener('change',function(){if(idx===0)iniAny=parseInt(this.value);else fiAny=parseInt(this.value);render();});
+});
+
+[1,2,3,4,5,6,7].forEach(function(n){tog[n]=n<=2?'t':'m';});
+function stg(btn){
+  var n=parseInt(btn.getAttribute('data-c'));
+  tog[n]=btn.getAttribute('data-v');
+  btn.closest('.tog').querySelectorAll('.t-btn').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  renderChart(n);
+}
+
+// ── FORMAT ───────────────────────────────────────────────────────────────────
+var gc='rgba(0,0,0,0.04)', tc='#888';
+
+function fmtCA(v,dec){
+  dec=dec==null?0:dec;
+  if(v==null||isNaN(v))return '—';
+  return v.toLocaleString('ca-ES',{minimumFractionDigits:dec,maximumFractionDigits:dec});
+}
+
+function lblX(p){
+  if(p.indexOf('M')>0){var s=p.split('M');var mes=['gen','feb','mar','abr','mai','jun','jul','ago','set','oct','nov','des'];return mes[parseInt(s[1])-1]+'/'+s[0].slice(2);}
+  if(p.indexOf('T')>0){var s=p.split('T');return 'T'+s[1]+'/'+s[0].slice(2);}
+  return p;
+}
+
+// Unitat al tick superior; els demés només número
+function makeTicks(conv,unit){
+  return function(v,i,tks){
+    var n=conv(v);
+    return i===tks.length-1?n+'\u00a0'+unit:n;
+  };
+}
+
+// ── EIXOS ────────────────────────────────────────────────────────────────────
+var xAx={grid:{color:gc},ticks:{color:tc,font:{size:10},autoSkip:true,maxTicksLimit:14,maxRotation:45}};
+function yBase(cb){return {grid:{color:gc},border:{display:false},ticks:{color:tc,font:{size:10},callback:cb}};}
+function yRight(cb,col){return {position:'right',grid:{display:false},border:{display:false},ticks:{color:col||tc,font:{size:10},callback:cb}};}
+
+var tIdx   = makeTicks(function(v){return fmtCA(v,1);},'');
+var tPct   = makeTicks(function(v){return fmtCA(v,1);},'%');
+var tMil   = makeTicks(function(v){return fmtCA(v,1);},'milers');
+var tExp   = makeTicks(function(v){return fmtCA(v,0);},'exp.');
+var tHab   = makeTicks(function(v){return fmtCA(v,0);},'hab.');
+var tMeur  = makeTicks(function(v){return fmtCA(v/1e6,0);},'M\u20ac');
+// Superfície: valors en m², escala en m² (sense divisió)
+var tM2    = makeTicks(function(v){return fmtCA(v,0);},'m\u00b2');
+
+// ── FILTRE ───────────────────────────────────────────────────────────────────
+function filtAny(arr){return arr.filter(function(r){var a=parseInt(r.p.substring(0,4));return a>=iniAny&&a<=fiAny;});}
+
+// ── CHARTS ───────────────────────────────────────────────────────────────────
+var COL='#7B4F9E', COLbg='rgba(123,79,158,0.12)', COLbar='rgba(123,79,158,0.72)';
+var BLAU='#185FA5', BLAUbg='rgba(24,95,165,0.10)', BLAUbar='rgba(24,95,165,0.70)';
+var TAR='#EF9F27';
+
+function mk(id,cfg){if(charts[id])charts[id].destroy();charts[id]=new Chart(document.getElementById(id),cfg);}
+function tipS(lbl,fmt){return {legend:{display:false},tooltip:{mode:'index',intersect:false,callbacks:{label:function(c){return c.raw!=null?lbl+': '+fmt(c.raw):null;}}}};}
+
+function renderChart(n){
+  var d, isLine, opts;
+
+  // 1. VAB — barres índex + línia variació interanual (doble eix)
+  if(n===1){
+    d=filtAny(tog[1]==='t'?VAB_T:VAB_A);
+    var o1={
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,callbacks:{label:function(c){
+        if(c.datasetIndex===0)return 'Índex: '+fmtCA(c.raw,2);
+        return c.raw!=null?'Var. interanual: '+fmtCA(c.raw,2)+'%':null;
+      }}}},
+      scales:{
+        x:xAx,
+        y:Object.assign({},yBase(tIdx),{position:'left',min:88}),
+        y2:Object.assign({},yRight(tPct,TAR),{})
+      }
+    };
+    mk('c1',{type:'bar',data:{labels:d.map(function(r){return lblX(r.p);}),datasets:[
+      {label:'Índex',data:d.map(function(r){return r.v;}),backgroundColor:COLbar,yAxisID:'y',order:2},
+      {label:'Var. interanual %',data:d.map(function(r){return r.va!=null?r.va:null;}),type:'line',borderColor:TAR,backgroundColor:'transparent',borderWidth:2,pointRadius:3,pointBackgroundColor:TAR,tension:0.3,yAxisID:'y2',order:1}
+    ]},options:o1});
+  }
+
+  // 2. Ocupats
+  if(n===2){
+    d=filtAny(tog[2]==='t'?OC_T:OC_A);
+    isLine=tog[2]==='t';
+    mk('c2',{type:isLine?'line':'bar',data:{labels:d.map(function(r){return lblX(r.p);}),datasets:[{label:'Ocupats',data:d.map(function(r){return r.v;}),borderColor:BLAU,backgroundColor:isLine?BLAUbg:BLAUbar,fill:isLine,tension:0.3,pointRadius:2,borderWidth:1.8}]},options:{responsive:true,maintainAspectRatio:false,plugins:tipS('Ocupats',function(v){return fmtCA(v,1)+'\u00a0milers';}),scales:{x:xAx,y:yBase(tMil)}}});
+  }
+
+  // 3. Expedients
+  if(n===3){
+    d=filtAny(tog[3]==='m'?EXP_M:EXP_A);
+    mk('c3',{type:'bar',data:{labels:d.map(function(r){return lblX(r.p);}),datasets:[{label:'Expedients',data:d.map(function(r){return r.v;}),backgroundColor:COLbar}]},options:{responsive:true,maintainAspectRatio:false,plugins:tipS('Expedients',function(v){return fmtCA(v,0)+'\u00a0exp.';}),scales:{x:xAx,y:yBase(tExp)}}});
+  }
+
+  // 4. Pressupost
+  if(n===4){
+    d=filtAny(tog[4]==='m'?PR_M:PR_A);
+    mk('c4',{type:'bar',data:{labels:d.map(function(r){return lblX(r.p);}),datasets:[{label:'Pressupost',data:d.map(function(r){return r.v;}),backgroundColor:'rgba(183,157,30,0.75)'}]},options:{responsive:true,maintainAspectRatio:false,plugins:tipS('Pressupost',function(v){return fmtCA(v/1e6,1)+'M\u20ac';}),scales:{x:xAx,y:yBase(tMeur)}}});
+  }
+
+  // 5. Habitatges
+  if(n===5){
+    d=filtAny(tog[5]==='m'?HAB_M:HAB_A);
+    mk('c5',{type:'bar',data:{labels:d.map(function(r){return lblX(r.p);}),datasets:[{label:'Habitatges',data:d.map(function(r){return r.v;}),backgroundColor:'rgba(204,20,46,0.70)'}]},options:{responsive:true,maintainAspectRatio:false,plugins:tipS('Habitatges',function(v){return fmtCA(v,0)+'\u00a0hab.';}),scales:{x:xAx,y:yBase(tHab)}}});
+  }
+
+  // 6. Superfície — escala en m² (valors grans, sense conversió)
+  if(n===6){
+    d=filtAny(tog[6]==='m'?SUP_M:SUP_A);
+    mk('c6',{type:'bar',data:{labels:d.map(function(r){return lblX(r.p);}),datasets:[{label:'Superfície',data:d.map(function(r){return r.v;}),backgroundColor:BLAUbar}]},options:{responsive:true,maintainAspectRatio:false,plugins:tipS('Superfície',function(v){return fmtCA(v,0)+'\u00a0m\u00b2';}),scales:{x:xAx,y:yBase(tM2)}}});
+  }
+
+  // 7. Expedients per illa — dades reals COAIB
+  if(n===7){
+    d=filtAny(tog[7]==='m'?EXP_ILLES_M:EXP_ILLES_A);
+    opts={responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,callbacks:{label:function(c){return c.raw>0?c.dataset.label+': '+fmtCA(c.raw,0)+'\u00a0exp.':null;}}}},
+      scales:{
+        x:Object.assign({},xAx,{stacked:true}),
+        y:{stacked:true,grid:{color:gc},border:{display:false},ticks:{color:tc,font:{size:10},callback:tExp}}
+      }};
+    mk('c7',{type:'bar',data:{labels:d.map(function(r){return lblX(r.p);}),datasets:[
+      {label:'Mallorca',data:d.map(function(r){return r.mal;}),backgroundColor:'rgba(123,79,158,0.80)',stack:'s'},
+      {label:'Menorca',data:d.map(function(r){return r.men;}),backgroundColor:'rgba(239,159,39,0.80)',stack:'s'},
+      {label:'Eivissa i Formentera',data:d.map(function(r){return r.eiv;}),backgroundColor:'rgba(204,20,46,0.75)',stack:'s'}
+    ]},options:opts});
+  }
+}
+
+function render(){[1,2,3,4,5,6,7].forEach(renderChart);}
+render();
+
+// ── DESCARREGA CSV ───────────────────────────────────────────────────────────
+
+function toggleMenu(){
+  var m=document.getElementById('dlMenu');
+  m.classList.toggle('open');
+}
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.dl-wrap'))document.getElementById('dlMenu').classList.remove('open');
+});
+
+function downloadCSV(filtered){
+  // Per a la vista actual, cada serie exporta el toggle actiu
+  // tog[1],[2] = 't'(trimestral) o 'a'(anual)
+  // tog[3..7]  = 'm'(mensual)   o 'a'(anual)
+
+  function dades(complet_m, complet_a, togKey){
+    if(!filtered) return togKey<=2
+      ? {d: tog[togKey]==='t' ? complet_m : complet_a, suffix: tog[togKey]==='t' ? 'trimestral' : 'anual'}
+      : {d: tog[togKey]==='m' ? complet_m : complet_a, suffix: tog[togKey]==='m' ? 'mensual'    : 'anual'};
+    // filtrat: filtre d'anys + toggle actiu
+    return togKey<=2
+      ? {d: filtAny(tog[togKey]==='t' ? complet_m : complet_a), suffix: tog[togKey]==='t' ? 'trimestral' : 'anual'}
+      : {d: filtAny(tog[togKey]==='m' ? complet_m : complet_a), suffix: tog[togKey]==='m' ? 'mensual'    : 'anual'};
+  }
+
+  var d1=dades(VAB_T,VAB_A,1);
+  var d2=dades(OC_T,OC_A,2);
+  var d3=dades(EXP_M,EXP_A,3);
+  var d4=dades(PR_M,PR_A,4);
+  var d5=dades(SUP_M,SUP_A,6);  // toggle 6 = superficie
+  var d6=dades(HAB_M,HAB_A,5);  // toggle 5 = habitatges
+  var d7=dades(EXP_ILLES_M,EXP_ILLES_A,7);
+
+  var series=[
+    {nom:'VAB_Construccio_'+d1.suffix, dades:d1.d,
+     camps:['Periode','Indeks','Var_interanual_pct'],
+     vals:function(r){return[r.p, fmtDec(r.v,2), r.va!=null?fmtDec(r.va,2):''];}},
+    {nom:'Ocupats_construccio_'+d2.suffix, dades:d2.d,
+     camps:['Periode','Milers_Balears'],
+     vals:function(r){return[r.p, fmtDec(r.v,1)];}},
+    {nom:'Expedients_visats_'+d3.suffix, dades:d3.d,
+     camps:['Periode','Expedients_Balears'],
+     vals:function(r){return[r.p, r.v];}},
+    {nom:'Pressupost_projectes_visats_'+d4.suffix, dades:d4.d,
+     camps:['Periode','Euros_Balears'],
+     vals:function(r){return[r.p, r.v];}},
+    {nom:'Superficie_expedients_visats_'+d5.suffix, dades:d5.d,
+     camps:['Periode','m2_Balears'],
+     vals:function(r){return[r.p, fmtDec(r.v,1)];}},
+    {nom:'Habitatges_visats_'+d6.suffix, dades:d6.d,
+     camps:['Periode','Habitatges_Balears'],
+     vals:function(r){return[r.p, r.v];}},
+    {nom:'Expedients_visats_per_illa_'+d7.suffix, dades:d7.d,
+     camps:['Periode','Mallorca','Menorca','Eivissa_i_Formentera'],
+     vals:function(r){return[r.p, r.mal, r.men, r.eiv];}}
+  ];
+
+  // Decimal amb coma per a Excel europeu
+  function fmtDec(v, dec){
+    if(v==null||v==='')return '';
+    return v.toFixed(dec).replace('.',',');
+  }
+
+  var lines=[];
+  lines.push('# Indicadors de construcci\u00f3 \u2014 Illes Balears');
+  lines.push('# Elaboraci\u00f3: DG d\'Economia i Estad\u00edstica \u2014 Govern de les Illes Balears');
+  lines.push('# Dades: COAIB / Ibestat, INE / Ibestat (EPA), DGEiE (VAB)');
+  lines.push('# Data d\'extracci\u00f3: '+new Date().toLocaleDateString('ca-ES'));
+  lines.push(filtered?('# Filtre aplicat: '+iniAny+' \u2013 '+fiAny):'# S\u00e8rie completa (sense filtre)');
+  lines.push('');
+
+  series.forEach(function(s){
+    if(!s.dades||!s.dades.length)return;
+    lines.push('## '+s.nom);
+    lines.push(s.camps.join(';'));
+    s.dades.forEach(function(r){lines.push(s.vals(r).join(';'));});
+    lines.push('');
+  });
+
+  // BOM UTF-8 per garantir lectura correcta a Excel/Windows
+  var blob=new Blob(['\uFEFF'+lines.join('\n')],{type:'text/csv;charset=utf-8;'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;
+  a.download='construccio_IB'+(filtered?('_'+iniAny+'-'+fiAny):'_serie_completa')+'.csv';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  document.getElementById('dlMenu').classList.remove('open');
+}
+
+</script>
+</body>
+</html>
