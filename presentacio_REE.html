@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="ca" xmlns:mso="urn:schemas-microsoft-com:office:office" xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Energia elèctrica — Illes Balears</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --blau:    #004B99;
+  --blau-f:  #003272;
+  --blau-cl: #dbeafe;
+  --daurat:  #c8985a;
+  --verd:    #3B6D11;
+  --taronja: #EF9F27;
+  --vermell: #CC142E;
+  --lila:    #7B4F9E;
+  --gris:    #5a6270;
+  --gris-cl: #f2f4f7;
+  --text:    #1c2536;
+  --blanc:   #ffffff;
+  --marc-bg: #0d1b2e;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: var(--marc-bg);
+  font-family: 'Source Sans 3', sans-serif;
+  color: var(--text);
+}
+
+/* ── MARC EXTERIOR ── */
+#frame {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 200;
+}
+/* Cantonades daurades */
+#frame::before, #frame::after,
+#frame .fc1, #frame .fc2 {
+  content: '';
+  position: absolute;
+  width: 28px; height: 28px;
+  border-color: var(--daurat);
+  border-style: solid;
+  opacity: 0.7;
+}
+#frame::before { top:10px; left:10px;  border-width: 2px 0 0 2px; }
+#frame::after  { top:10px; right:10px; border-width: 2px 2px 0 0; }
+#frame .fc1    { bottom:54px; left:10px;  border-width: 0 0 2px 2px; }
+#frame .fc2    { bottom:54px; right:10px; border-width: 0 2px 2px 0; }
+/* Línies laterals primes */
+#frame .fl-t { position:absolute; top:10px;    left:38px; right:38px; height:1px;  background:linear-gradient(90deg,transparent,rgba(200,152,90,0.3),transparent); }
+#frame .fl-b { position:absolute; bottom:54px; left:38px; right:38px; height:1px;  background:linear-gradient(90deg,transparent,rgba(200,152,90,0.3),transparent); }
+#frame .fl-l { position:absolute; top:38px;    bottom:82px; left:10px; width:1px;  background:linear-gradient(180deg,transparent,rgba(200,152,90,0.3),transparent); }
+#frame .fl-r { position:absolute; top:38px;    bottom:82px; right:10px; width:1px; background:linear-gradient(180deg,transparent,rgba(200,152,90,0.3),transparent); }
+
+/* ── DECK ── */
+#deck {
+  position: fixed;
+  top: 10px; left: 10px; right: 10px; bottom: 54px;
+  overflow: hidden;
+  border-radius: 2px;
+  box-shadow: 0 8px 48px rgba(0,0,0,0.55);
+}
+
+.slide {
+  position: absolute;
+  inset: 0;
+  display: none;
+  background: var(--blanc);
+  flex-direction: column;
+}
+.slide.active { display: flex; }
+
+/* ── CAPÇALERA ── */
+.slide-header {
+  background: var(--blau-f);
+  color: white;
+  padding: 11px 28px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 3px solid var(--daurat);
+  flex-shrink: 0;
+}
+.slide-header-left { display: flex; align-items: center; gap: 12px; }
+.slide-logo {
+  width: 32px; height: 32px;
+  background: var(--daurat);
+  border-radius: 3px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Playfair Display', serif;
+  font-size: 14px; font-weight: 700; color: var(--blau-f);
+  flex-shrink: 0;
+}
+.slide-header-title { font-family:'Playfair Display',serif; font-size:0.95rem; font-weight:600; line-height:1.2; }
+.slide-header-sub   { font-size:0.68rem; opacity:0.6; margin-top:1px; font-weight:300; }
+.slide-counter      { font-size:0.7rem; opacity:0.45; white-space:nowrap; }
+
+/* ── COS ── */
+.slide-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 14px 28px 10px;
+  overflow: hidden;
+  gap: 10px;
+}
+
+/* PORTADA */
+.slide-cover .slide-body {
+  background: var(--blau-f);
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 60px;
+  gap: 14px;
+}
+.slide-cover .slide-header { display: none; }
+.cover-overline { font-size:0.72rem; font-weight:600; color:var(--daurat); letter-spacing:0.12em; text-transform:uppercase; }
+.cover-title    { font-family:'Playfair Display',serif; font-size:2.6rem; font-weight:700; color:white; line-height:1.15; max-width:680px; }
+.cover-subtitle { font-size:0.95rem; color:rgba(255,255,255,0.7); font-weight:300; max-width:560px; line-height:1.5; }
+.cover-badge    { display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); border-radius:20px; padding:5px 14px; font-size:0.72rem; color:rgba(255,255,255,0.55); margin-top:4px; }
+.cover-badge span { color:var(--daurat); font-weight:600; }
+.cover-meta     { font-size:0.72rem; color:rgba(255,255,255,0.35); margin-top:4px; }
+
+/* TÍTOL DE SECCIÓ */
+.section-title { font-family:'Playfair Display',serif; font-size:1.15rem; font-weight:600; color:var(--blau-f); line-height:1.2; }
+.section-sub   { font-size:0.73rem; color:var(--gris); font-weight:300; margin-top:1px; }
+
+/* COMENTARI */
+.comment-box {
+  background: var(--gris-cl);
+  border-left: 3px solid var(--daurat);
+  border-radius: 0 6px 6px 0;
+  padding: 9px 14px;
+  font-size: 0.83rem; color: #3d4452; line-height: 1.58;
+  flex-shrink: 0;
+}
+.comment-box strong { color: var(--blau-f); font-weight: 600; }
+
+/* Fila de dos comentaris */
+.comment-row { display:flex; gap:10px; flex-shrink:0; }
+.comment-row .comment-box { flex:1; }
+
+/* KPIs */
+.kpis { display:flex; gap:10px; flex-shrink:0; }
+.kpi  { flex:1; background:white; border:1px solid #e0e8f0; border-radius:8px; padding:10px 14px; border-top:3px solid var(--blau); }
+.kpi.verd   { border-top-color: var(--verd); }
+.kpi.daurat { border-top-color: var(--daurat); }
+.kpi.lila   { border-top-color: var(--lila); }
+.kpi-label { font-size:0.67rem; color:var(--gris); text-transform:uppercase; letter-spacing:0.05em; font-weight:600; }
+.kpi-val   { font-size:1.45rem; font-weight:700; color:var(--text); margin:3px 0 1px; line-height:1; }
+.kpi-note  { font-size:0.67rem; color:var(--gris); }
+.kpi-delta { font-size:0.7rem; font-weight:600; margin-top:2px; }
+.up { color:#1b5e20; } .dn { color:#b71c1c; }
+
+/* GRÀFICS */
+.chart-row  { flex:1; display:flex; gap:12px; min-height:0; }
+.chart-box  { flex:1; background:white; border:1px solid #e0e8f0; border-radius:10px; padding:12px; display:flex; flex-direction:column; min-width:0; }
+.chart-box.full { flex:2; }
+.chart-box-title { font-size:0.8rem; font-weight:600; color:var(--text); margin-bottom:1px; }
+.chart-box-note  { font-size:0.67rem; color:var(--gris); margin-bottom:6px; }
+.chart-wrap { flex:1; position:relative; min-height:0; }
+.leg { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:5px; }
+.leg-i  { display:flex; align-items:center; gap:4px; font-size:0.68rem; color:var(--gris); }
+.leg-sq { width:9px; height:9px; border-radius:2px; flex-shrink:0; }
+
+/* TANCAMENT */
+.slide-end .slide-header { display:none; }
+.slide-end .slide-body   { background:var(--blau-f); align-items:center; justify-content:center; text-align:center; gap:12px; }
+.end-title { font-family:'Playfair Display',serif; font-size:1.8rem; font-weight:600; color:white; }
+.end-sub   { font-size:0.88rem; color:rgba(255,255,255,0.6); font-weight:300; }
+.end-line  { width:60px; height:2px; background:var(--daurat); border-radius:2px; }
+.end-meta  { font-size:0.7rem; color:rgba(255,255,255,0.3); margin-top:6px; }
+
+/* ── BARRA NAVEGACIÓ ── */
+#navbar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: 44px;
+  background: #0a1525;
+  border-top: 1px solid rgba(200,152,90,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  z-index: 300;
+}
+.nav-btn {
+  display:flex; align-items:center; gap:6px;
+  background:none; border:none;
+  color:rgba(255,255,255,0.55);
+  font-family:'Source Sans 3',sans-serif; font-size:0.78rem; font-weight:600;
+  cursor:pointer; padding:6px 10px; border-radius:6px; transition:all 0.15s;
+}
+.nav-btn:hover   { background:rgba(255,255,255,0.07); color:white; }
+.nav-btn:disabled { opacity:0.2; cursor:default; }
+.nav-dots { display:flex; gap:6px; align-items:center; }
+.nav-dot  { width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,0.2); cursor:pointer; transition:all 0.2s; }
+.nav-dot.active { background:var(--daurat); width:18px; border-radius:3px; }
+</style>
+
+<!--[if gte mso 9]><xml>
+<mso:CustomDocumentProperties>
+<mso:_dlc_DocId msdt:dt="string">NXEMYWP4CTEQ-757066276-328780</mso:_dlc_DocId>
+<mso:_dlc_DocIdItemGuid msdt:dt="string">250a6257-f996-4259-9fbf-3ca3915bfc29</mso:_dlc_DocIdItemGuid>
+<mso:_dlc_DocIdUrl msdt:dt="string">https://caib.sharepoint.com/sites/ARXIUS-OBSTRE/_layouts/15/DocIdRedir.aspx?ID=NXEMYWP4CTEQ-757066276-328780, NXEMYWP4CTEQ-757066276-328780</mso:_dlc_DocIdUrl>
+</mso:CustomDocumentProperties>
+</xml><![endif]-->
+</head>
+<body>
+
+<!-- Marc decoratiu -->
+<div id="frame">
+  <div class="fc1"></div><div class="fc2"></div>
+  <div class="fl-t"></div><div class="fl-b"></div>
+  <div class="fl-l"></div><div class="fl-r"></div>
+</div>
+
+<div id="deck">
+
+  <!-- ══ S0: PORTADA ══ -->
+  <div class="slide slide-cover active" id="s0">
+    <div class="slide-body">
+      <div class="cover-overline">Indicadors sectorials · Energia</div>
+      <div class="cover-title">Energia elèctrica<br>a les Illes Balears</div>
+      <div class="cover-subtitle">Evolució de la demanda, l'autoconsum, la cobertura del cable submarí i les emissions de CO₂. Dades actualitzades fins a març de 2026.</div>
+      <div class="cover-badge">Font: <span>Red Eléctrica de España (REE)</span> · Elaboració: DGEiE</div>
+      <div class="cover-meta">Direcció General d'Economia i Estadística · Govern de les Illes Balears</div>
+    </div>
+  </div>
+
+  <!-- ══ S1: KPIs + DEMANDA ══ -->
+  <div class="slide" id="s1">
+    <div class="slide-header">
+      <div class="slide-header-left">
+        <div class="slide-logo">IB</div>
+        <div><div class="slide-header-title">Energia elèctrica — Illes Balears</div>
+             <div class="slide-header-sub">DGEiE · Font: REE</div></div>
+      </div>
+      <div class="slide-counter" id="ctr1"></div>
+    </div>
+    <div class="slide-body">
+      <div class="section-title">Magnituds principals</div>
+      <div class="kpis">
+        <div class="kpi">
+          <div class="kpi-label">Demanda real (març 2026)</div>
+          <div class="kpi-val">485,4 GWh</div>
+          <div class="kpi-delta up">▲ +3,1% interanual</div>
+          <div class="kpi-note">Xarxa + autoconsum</div>
+        </div>
+        <div class="kpi verd">
+          <div class="kpi-label">Autoconsum (març 2026)</div>
+          <div class="kpi-val">19,6 GWh</div>
+          <div class="kpi-delta up">▲ +12,4% interanual</div>
+          <div class="kpi-note">4,0% de la demanda real</div>
+        </div>
+        <div class="kpi daurat">
+          <div class="kpi-label">% Renovable (2025)</div>
+          <div class="kpi-val">~28%</div>
+          <div class="kpi-delta up">▲ +4 p.p. vs. 2024</div>
+          <div class="kpi-note">Xarxa + autoconsum</div>
+        </div>
+        <div class="kpi lila">
+          <div class="kpi-label">Cable submarí (2025 mitjana)</div>
+          <div class="kpi-val">22,4%</div>
+          <div class="kpi-delta dn">▼ −2 p.p. vs. 2024</div>
+          <div class="kpi-note">% cobertura demanda real</div>
+        </div>
+      </div>
+      <div class="comment-box">
+        <strong>Lectura clau:</strong> La demanda real supera la de xarxa perquè incorpora l'autoconsum fotovoltaic, que segueix creixent. El primer trimestre de 2026 mostra una acceleració d'aquest creixement (+12% interanual), reflex de la ràpida expansió de la capacitat instal·lada d'energia solar a les illes.
+      </div>
+      <div class="chart-row">
+        <div class="chart-box full">
+          <div class="chart-box-title">Demanda de xarxa vs. demanda real (GWh mensuals)</div>
+          <div class="chart-box-note">La diferència entre les dues línies és l'autoconsum fotovoltaic · 2022–2026</div>
+          <div class="leg">
+            <span class="leg-i"><span class="leg-sq" style="background:#185FA5"></span>Demanda xarxa</span>
+            <span class="leg-i"><span class="leg-sq" style="background:#1D9E75"></span>Demanda real</span>
+          </div>
+          <div class="chart-wrap"><canvas id="c_demanda"></canvas></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ S2: AUTOCONSUM ══ -->
+  <div class="slide" id="s2">
+    <div class="slide-header">
+      <div class="slide-header-left">
+        <div class="slide-logo">IB</div>
+        <div><div class="slide-header-title">Energia elèctrica — Illes Balears</div>
+             <div class="slide-header-sub">DGEiE · Font: REE</div></div>
+      </div>
+      <div class="slide-counter" id="ctr2"></div>
+    </div>
+    <div class="slide-body">
+      <div class="section-title">L'autoconsum fotovoltaic · 2022–2026</div>
+      <div class="comment-row">
+        <div class="comment-box">
+          <strong>Volum:</strong> L'autoconsum ha passat de menys de 3 GWh mensuals el 2022 a superar els 30 GWh el juny de 2025 — una multiplicació per deu en tres anys, amb una clara estacionalitat (màxims a l'estiu).
+        </div>
+        <div class="comment-box">
+          <strong>Pes sobre la demanda:</strong> El percentatge sobre la demanda real ha crescut del 0,5% fins a prop del 5% en temporada alta. És el canvi estructural més rellevant del sistema elèctric balear en la darrera dècada.
+        </div>
+      </div>
+      <div class="chart-row">
+        <div class="chart-box">
+          <div class="chart-box-title">Autoconsum mensual (GWh)</div>
+          <div class="chart-box-note">Generació fotovoltaica no connectada a xarxa</div>
+          <div class="chart-wrap"><canvas id="c_auto_gwh"></canvas></div>
+        </div>
+        <div class="chart-box">
+          <div class="chart-box-title">Pes de l'autoconsum sobre demanda real (%)</div>
+          <div class="chart-box-note">Percentatge mensual</div>
+          <div class="chart-wrap"><canvas id="c_auto_pct"></canvas></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ S3: CABLE ══ -->
+  <div class="slide" id="s3">
+    <div class="slide-header">
+      <div class="slide-header-left">
+        <div class="slide-logo">IB</div>
+        <div><div class="slide-header-title">Energia elèctrica — Illes Balears</div>
+             <div class="slide-header-sub">DGEiE · Font: REE</div></div>
+      </div>
+      <div class="slide-counter" id="ctr3"></div>
+    </div>
+    <div class="slide-body">
+      <div class="section-title">Cobertura del cable submarí d'interconnexió · 2019–2026</div>
+      <div class="comment-box">
+        <strong>Context:</strong> El cable submarí és clau per a la seguretat del subministrament. Des del 2021 la cobertura oscil·la entre el 7% i el 32%, amb fort component estacional (mínims a l'estiu). La reducció sostinguda des del 2019 reflecteix una major autosuficiència elèctrica de les illes.
+      </div>
+      <div class="chart-row">
+        <div class="chart-box full">
+          <div class="chart-box-title">% cobertura cable submarí sobre demanda real</div>
+          <div class="chart-box-note">Dades mensuals · La línia puntejada marca el 25% de referència</div>
+          <div class="leg">
+            <span class="leg-i"><span class="leg-sq" style="background:#004B99"></span>% cable</span>
+            <span class="leg-i"><span class="leg-sq" style="background:rgba(0,75,153,0.3)"></span>Referència 25%</span>
+          </div>
+          <div class="chart-wrap"><canvas id="c_cable"></canvas></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ S4: EMISSIONS ══ -->
+  <div class="slide" id="s4">
+    <div class="slide-header">
+      <div class="slide-header-left">
+        <div class="slide-logo">IB</div>
+        <div><div class="slide-header-title">Energia elèctrica — Illes Balears</div>
+             <div class="slide-header-sub">DGEiE · Font: REE</div></div>
+      </div>
+      <div class="slide-counter" id="ctr4"></div>
+    </div>
+    <div class="slide-body">
+      <div class="section-title">Emissions de CO₂ i estalvi renovable · 2019–2025</div>
+      <div class="comment-box">
+        <strong>Evolució:</strong> Les emissions totals mostren una tendència descendent des de 2019. Paral·lelament, les emissions estalviades per les renovables (xarxa + autoconsum) han crescut de forma sostinguda fins a superar les 390 ktCO₂eq el 2025 — un nou màxim que reflecteix la creixent penetració solar.
+      </div>
+      <div class="chart-row">
+        <div class="chart-box full">
+          <div class="chart-box-title">Emissions totals (barres) vs. emissions estalviades per renovables (línia)</div>
+          <div class="chart-box-note">ktCO₂eq · Eix esquerre: emissions totals · Eix dret: emissions estalviades</div>
+          <div class="leg">
+            <span class="leg-i"><span class="leg-sq" style="background:#B4B2A9"></span>Emissions totals (eix esq.)</span>
+            <span class="leg-i"><span class="leg-sq" style="background:#3B6D11"></span>Estalviades per renovables (eix dret)</span>
+          </div>
+          <div class="chart-wrap"><canvas id="c_em"></canvas></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ S5: TANCAMENT ══ -->
+  <div class="slide slide-end" id="s5">
+    <div class="slide-body">
+      <div class="end-line"></div>
+      <div class="end-title">Indicadors d'energia elèctrica<br>Illes Balears</div>
+      <div class="end-sub">Dades actualitzades fins a març de 2026 · Actualització mensual · Font: REE</div>
+      <div class="end-line"></div>
+      <div class="end-meta">Elaboració: Direcció General d'Economia i Estadística · Govern de les Illes Balears<br>
+        https://dgeie.github.io/Economia_ullada/</div>
+    </div>
+  </div>
+
+</div><!-- /deck -->
+
+<!-- Barra navegació -->
+<div id="navbar">
+  <button class="nav-btn" id="btn-prev" onclick="nav(-1)">
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M8 2L3 6.5 8 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Anterior
+  </button>
+  <div class="nav-dots" id="nav-dots"></div>
+  <button class="nav-btn" id="btn-next" onclick="nav(1)">
+    Següent
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M5 2l5 4.5L5 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+</div>
+
+<script>
+// ============================================================
+// DADES
+// ============================================================
+const DR = [
+  {a:2022,m:1,  xarxa:464.9, real:467.5, auto:2.5},
+  {a:2022,m:2,  xarxa:397.2, real:400.1, auto:2.9},
+  {a:2022,m:3,  xarxa:441.9, real:444.5, auto:2.6},
+  {a:2022,m:4,  xarxa:436.3, real:440.6, auto:4.3},
+  {a:2022,m:5,  xarxa:471.9, real:477.1, auto:5.2},
+  {a:2022,m:6,  xarxa:575.2, real:580.5, auto:5.3},
+  {a:2022,m:7,  xarxa:702.4, real:707.8, auto:5.4},
+  {a:2022,m:8,  xarxa:728.9, real:734.1, auto:5.2},
+  {a:2022,m:9,  xarxa:594.7, real:600.2, auto:5.5},
+  {a:2022,m:10, xarxa:466.8, real:472.3, auto:5.5},
+  {a:2022,m:11, xarxa:362.6, real:367.3, auto:4.7},
+  {a:2022,m:12, xarxa:398.8, real:403.3, auto:4.5},
+  {a:2023,m:1,  xarxa:454.1, real:459.3, auto:5.2},
+  {a:2023,m:2,  xarxa:434.7, real:441.2, auto:6.5},
+  {a:2023,m:3,  xarxa:417.3, real:427.6, auto:10.3},
+  {a:2023,m:4,  xarxa:408.2, real:421.0, auto:12.8},
+  {a:2023,m:5,  xarxa:464.4, real:475.6, auto:11.2},
+  {a:2023,m:6,  xarxa:551.2, real:563.9, auto:12.7},
+  {a:2023,m:7,  xarxa:741.6, real:755.7, auto:14.1},
+  {a:2023,m:8,  xarxa:708.0, real:723.3, auto:15.3},
+  {a:2023,m:9,  xarxa:569.2, real:581.0, auto:11.8},
+  {a:2023,m:10, xarxa:498.7, real:511.0, auto:12.3},
+  {a:2023,m:11, xarxa:377.5, real:387.5, auto:10.0},
+  {a:2023,m:12, xarxa:422.4, real:431.3, auto:8.9},
+  {a:2024,m:1,  xarxa:449.3, real:459.4, auto:10.1},
+  {a:2024,m:2,  xarxa:410.1, real:422.8, auto:12.7},
+  {a:2024,m:3,  xarxa:431.3, real:448.8, auto:17.5},
+  {a:2024,m:4,  xarxa:434.0, real:450.9, auto:16.9},
+  {a:2024,m:5,  xarxa:479.7, real:501.8, auto:22.1},
+  {a:2024,m:6,  xarxa:541.0, real:561.8, auto:20.8},
+  {a:2024,m:7,  xarxa:685.3, real:709.0, auto:23.6},
+  {a:2024,m:8,  xarxa:733.5, real:755.5, auto:21.9},
+  {a:2024,m:9,  xarxa:557.4, real:576.3, auto:18.9},
+  {a:2024,m:10, xarxa:504.4, real:522.1, auto:17.6},
+  {a:2024,m:11, xarxa:385.2, real:398.6, auto:13.5},
+  {a:2024,m:12, xarxa:452.6, real:465.5, auto:12.9},
+  {a:2025,m:1,  xarxa:458.8, real:472.6, auto:13.8},
+  {a:2025,m:2,  xarxa:420.4, real:435.0, auto:14.6},
+  {a:2025,m:3,  xarxa:454.4, real:470.2, auto:15.8},
+  {a:2025,m:4,  xarxa:428.5, real:452.5, auto:24.0},
+  {a:2025,m:5,  xarxa:477.9, real:504.6, auto:26.7},
+  {a:2025,m:6,  xarxa:626.0, real:655.6, auto:29.6},
+  {a:2025,m:7,  xarxa:733.2, real:762.0, auto:28.8},
+  {a:2025,m:8,  xarxa:730.7, real:761.3, auto:30.6},
+  {a:2025,m:9,  xarxa:604.7, real:631.1, auto:26.4},
+  {a:2025,m:10, xarxa:500.6, real:521.0, auto:20.5},
+  {a:2025,m:11, xarxa:417.5, real:433.1, auto:15.6},
+  {a:2025,m:12, xarxa:467.1, real:479.1, auto:12.0},
+  {a:2026,m:1,  xarxa:501.1, real:515.8, auto:14.7},
+  {a:2026,m:2,  xarxa:400.6, real:421.5, auto:20.9},
+  {a:2026,m:3,  xarxa:465.7, real:485.4, auto:19.6},
+];
+
+const COB = [
+  {a:2019,m:1,pct:28.7},{a:2019,m:2,pct:28.7},{a:2019,m:3,pct:28.0},{a:2019,m:4,pct:27.9},{a:2019,m:5,pct:30.0},{a:2019,m:6,pct:29.6},{a:2019,m:7,pct:28.0},{a:2019,m:8,pct:26.3},{a:2019,m:9,pct:26.8},{a:2019,m:10,pct:28.1},{a:2019,m:11,pct:22.1},{a:2019,m:12,pct:28.4},
+  {a:2020,m:1,pct:29.8},{a:2020,m:2,pct:28.7},{a:2020,m:3,pct:27.9},{a:2020,m:4,pct:25.0},{a:2020,m:5,pct:24.4},{a:2020,m:6,pct:25.9},{a:2020,m:7,pct:31.8},{a:2020,m:8,pct:32.3},{a:2020,m:9,pct:28.8},{a:2020,m:10,pct:28.8},{a:2020,m:11,pct:26.4},{a:2020,m:12,pct:31.6},
+  {a:2021,m:1,pct:29.4},{a:2021,m:2,pct:31.4},{a:2021,m:3,pct:31.2},{a:2021,m:4,pct:29.3},{a:2021,m:5,pct:29.3},{a:2021,m:6,pct:14.2},{a:2021,m:7,pct:7.6},{a:2021,m:8,pct:6.3},{a:2021,m:9,pct:6.9},{a:2021,m:10,pct:8.6},{a:2021,m:11,pct:7.0},{a:2021,m:12,pct:7.4},
+  {a:2022,m:1,pct:6.7},{a:2022,m:2,pct:6.9},{a:2022,m:3,pct:6.9},{a:2022,m:4,pct:7.6},{a:2022,m:5,pct:6.7},{a:2022,m:6,pct:6.1},{a:2022,m:7,pct:9.5},{a:2022,m:8,pct:10.6},{a:2022,m:9,pct:11.8},{a:2022,m:10,pct:13.0},{a:2022,m:11,pct:15.2},{a:2022,m:12,pct:19.8},
+  {a:2023,m:1,pct:27.0},{a:2023,m:2,pct:20.3},{a:2023,m:3,pct:19.2},{a:2023,m:4,pct:23.3},{a:2023,m:5,pct:25.0},{a:2023,m:6,pct:22.1},{a:2023,m:7,pct:22.3},{a:2023,m:8,pct:24.2},{a:2023,m:9,pct:22.5},{a:2023,m:10,pct:25.7},{a:2023,m:11,pct:18.3},{a:2023,m:12,pct:26.1},
+  {a:2024,m:1,pct:26.7},{a:2024,m:2,pct:27.1},{a:2024,m:3,pct:24.7},{a:2024,m:4,pct:24.3},{a:2024,m:5,pct:23.5},{a:2024,m:6,pct:25.9},{a:2024,m:7,pct:29.4},{a:2024,m:8,pct:24.9},{a:2024,m:9,pct:28.1},{a:2024,m:10,pct:27.7},{a:2024,m:11,pct:19.6},{a:2024,m:12,pct:16.7},
+  {a:2025,m:1,pct:18.1},{a:2025,m:2,pct:20.9},{a:2025,m:3,pct:24.1},{a:2025,m:4,pct:18.9},{a:2025,m:5,pct:21.9},{a:2025,m:6,pct:26.1},{a:2025,m:7,pct:24.7},{a:2025,m:8,pct:27.4},{a:2025,m:9,pct:26.3},{a:2025,m:10,pct:22.9},{a:2025,m:11,pct:17.8},{a:2025,m:12,pct:25.1},
+  {a:2026,m:1,pct:26.9},{a:2026,m:2,pct:24.3},{a:2026,m:3,pct:21.6},
+];
+
+const EM_A = [
+  {a:2019,tot:3131,est:152},
+  {a:2020,tot:1884,est:98},
+  {a:2021,tot:2246,est:111},
+  {a:2022,tot:2521,est:214},
+  {a:2023,tot:2307,est:298},
+  {a:2024,tot:2180,est:345},
+  {a:2025,tot:2050,est:390},
+];
+
+const MESOS = ['Gen','Feb','Mar','Abr','Mai','Jun','Jul','Ago','Set','Oct','Nov','Des'];
+const labDR  = () => DR.map(r=>`${MESOS[r.m-1]} ${r.a}`);
+const labCOB = () => COB.map(r=>`${MESOS[r.m-1]} ${r.a}`);
+
+// ============================================================
+// OPCIONS BASE — sense deep-clone per preservar callbacks
+// ============================================================
+function xOpts(tickCb, maxTicks) {
+  return {
+    ticks: {
+      font: { family:"'Source Sans 3', sans-serif", size: 11 },
+      maxRotation: 45, color: '#6a7380',
+      maxTicksLimit: maxTicks || 14, autoSkip: true,
+      callback: tickCb || null
+    },
+    grid: { color: '#edf0f5' }
+  };
+}
+
+function yOpts(tickCb, extra) {
+  return {
+    ...(extra || {}),
+    ticks: {
+      font: { family:"'Source Sans 3', sans-serif", size: 11 },
+      color: '#6a7380',
+      callback: tickCb
+    },
+    grid: { color: '#edf0f5' }
+  };
+}
+
+function basePlugins(unit) {
+  return {
+    legend: { display: false },
+    tooltip: {
+      backgroundColor: 'rgba(10,20,40,0.92)',
+      titleFont: { family:"'Source Sans 3', sans-serif", size:11, weight:'600' },
+      bodyFont:  { family:"'Source Sans 3', sans-serif", size:11 },
+      padding: 9,
+      callbacks: {
+        label: ctx => {
+          const v = ctx.parsed.y;
+          const sign = v > 0 ? '' : '';
+          return ` ${ctx.dataset.label}: ${sign}${v.toLocaleString('ca-ES', {maximumFractionDigits:1})}${unit}`;
+        }
+      }
+    }
+  };
+}
+
+// ─── DEMANDA ───
+function initDemanda() {
+  new Chart(document.getElementById('c_demanda'), {
+    type: 'line',
+    data: {
+      labels: labDR(),
+      datasets: [
+        { label:'Demanda xarxa', data: DR.map(r=>r.xarxa), borderColor:'#185FA5', borderWidth:1.5, pointRadius:0, pointHoverRadius:4, tension:0.2, fill:false },
+        { label:'Demanda real',  data: DR.map(r=>r.real),  borderColor:'#1D9E75', borderWidth:1.5, pointRadius:0, pointHoverRadius:4, tension:0.2, fill:false },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode:'index', intersect:false },
+      plugins: basePlugins(' GWh'),
+      scales: { x: xOpts(), y: yOpts(v=>`${v} GWh`) }
+    }
+  });
+}
+
+// ─── AUTOCONSUM GWh ───
+function initAutoGwh() {
+  new Chart(document.getElementById('c_auto_gwh'), {
+    type: 'bar',
+    data: {
+      labels: labDR(),
+      datasets: [{ label:'Autoconsum', data: DR.map(r=>r.auto), backgroundColor:'#EF9F27', borderRadius:2 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode:'index', intersect:false },
+      plugins: basePlugins(' GWh'),
+      scales: { x: xOpts(), y: yOpts(v=>`${v} GWh`) }
+    }
+  });
+}
+
+// ─── AUTOCONSUM % ───
+function initAutoPct() {
+  const pct = DR.map(r => +((r.auto/r.real)*100).toFixed(2));
+  new Chart(document.getElementById('c_auto_pct'), {
+    type: 'line',
+    data: {
+      labels: labDR(),
+      datasets: [{ label:'% autoconsum', data: pct, borderColor:'#D85A30', borderWidth:1.8, pointRadius:0, pointHoverRadius:4, tension:0.3, fill:{ target:'origin', above:'rgba(216,90,48,0.08)' } }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode:'index', intersect:false },
+      plugins: basePlugins('%'),
+      scales: { x: xOpts(), y: yOpts(v=>`${v}%`) }
+    }
+  });
+}
+
+// ─── CABLE ───
+function initCable() {
+  new Chart(document.getElementById('c_cable'), {
+    type: 'line',
+    data: {
+      labels: labCOB(),
+      datasets: [
+        { label:'% cable',    data: COB.map(r=>r.pct), borderColor:'#004B99', borderWidth:1.8, pointRadius:0, pointHoverRadius:4, tension:0.2, fill:{ target:'origin', above:'rgba(0,75,153,0.07)' } },
+        { label:'Ref. 25%',   data: COB.map(()=>25),   borderColor:'rgba(0,75,153,0.35)', borderWidth:1.2, borderDash:[5,4], pointRadius:0 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode:'index', intersect:false },
+      plugins: basePlugins('%'),
+      scales: { x: xOpts(null, 16), y: yOpts(v=>`${v}%`, { min:0, max:40 }) }
+    }
+  });
+}
+
+// ─── EMISSIONS ───
+function initEmissions() {
+  new Chart(document.getElementById('c_em'), {
+    type: 'bar',
+    data: {
+      labels: EM_A.map(r=>r.a),
+      datasets: [
+        // Línia primer (order:0) → renderitza per davant
+        { label:'Estalviades',      data: EM_A.map(r=>r.est), type:'line', borderColor:'#3B6D11', borderWidth:2.5, pointRadius:5, pointBackgroundColor:'#3B6D11', pointHoverRadius:7, yAxisID:'y2', tension:0.25, order:0 },
+        { label:'Emissions totals', data: EM_A.map(r=>r.tot), backgroundColor:'#B4B2A9', hoverBackgroundColor:'#9a9890', borderRadius:4, yAxisID:'y', order:1 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode:'index', intersect:false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(10,20,40,0.92)',
+          titleFont: { family:"'Source Sans 3', sans-serif", size:11, weight:'600' },
+          bodyFont:  { family:"'Source Sans 3', sans-serif", size:11 },
+          padding: 9,
+        }
+      },
+      scales: {
+        x:  xOpts(null, 10),
+        y:  yOpts(v=>`${v} kt`, { position:'left' }),
+        y2: {
+          position: 'right',
+          ticks: { font:{ family:"'Source Sans 3', sans-serif", size:11 }, color:'#6a7380', callback: v=>`${v} kt` },
+          grid: { drawOnChartArea: false }
+        }
+      }
+    }
+  });
+}
+
+// ============================================================
+// NAVEGACIÓ
+// ============================================================
+const TOTAL = 6;
+let cur = 0;
+const chartsInit = {};
+const CHART_INITS = {
+  1: [initDemanda],
+  2: [initAutoGwh, initAutoPct],
+  3: [initCable],
+  4: [initEmissions],
+};
+
+function showSlide(n) {
+  document.querySelectorAll('.slide').forEach((s,i) => s.classList.toggle('active', i===n));
+  if (CHART_INITS[n] && !chartsInit[n]) {
+    chartsInit[n] = true;
+    setTimeout(() => CHART_INITS[n].forEach(fn => fn()), 40);
+  }
+  document.getElementById('btn-prev').disabled = n === 0;
+  document.getElementById('btn-next').disabled = n === TOTAL-1;
+  document.querySelectorAll('.nav-dot').forEach((d,i) => d.classList.toggle('active', i===n));
+  // Comptadors
+  [1,2,3,4].forEach(i => {
+    const el = document.getElementById(`ctr${i}`);
+    if (el) el.textContent = `${n} / ${TOTAL-1}`;
+  });
+  cur = n;
+}
+
+function nav(dir) { showSlide(Math.max(0, Math.min(TOTAL-1, cur+dir))); }
+
+const dotsEl = document.getElementById('nav-dots');
+for (let i=0;i<TOTAL;i++) {
+  const d = document.createElement('div');
+  d.className = 'nav-dot' + (i===0?' active':'');
+  d.onclick = () => showSlide(i);
+  dotsEl.appendChild(d);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key==='ArrowRight'||e.key==='ArrowDown') nav(1);
+  if (e.key==='ArrowLeft'||e.key==='ArrowUp')    nav(-1);
+});
+
+showSlide(0);
+</script>
+</body>
+</html>
