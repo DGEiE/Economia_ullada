@@ -1,53 +1,111 @@
 <!DOCTYPE html>
-<html lang="ca">
+<html lang="ca" xmlns:mso="urn:schemas-microsoft-com:office:office" xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dificultats d'accés a l'habitatge · Illes Balears · ECV 2025</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js">
+// Taula amb codis individuals (sense agregació)
+const RCOLS_IND=['#5DCAA5','#378ADD','#D85A30','#EF9F27','#7F77DD','#1D9E75','#B4B2A9'];
+function buildIndivTable(tblId,legId,rows){
+  const tbl=document.getElementById(tblId);
+  tbl.innerHTML=`<thead><tr>
+    <th style="width:140px">Grup</th>
+    <th class="r" style="width:75px">Conviuen<br>26–34 anys</th>
+    <th style="min-width:130px">Composició</th>
+    <th class="r" title="No m'he plantejat independitzar-me">1</th>
+    <th class="r" title="No em puc permetre llogar">2</th>
+    <th class="r" title="No puc fer front a l'entrada">3</th>
+    <th class="r" title="No reuneixo cond. hipoteca">4</th>
+    <th class="r" title="Estalviant per comprar o llogar">5</th>
+    <th class="r" title="Puc pagar però prefereixo">6</th>
+    <th class="r" title="Una altra raó">7</th>
+  </tr></thead><tbody id="${tblId}-body"></tbody>`;
+
+  const tbody=document.getElementById(`${tblId}-body`);
+  rows.forEach((d,idx)=>{
+    if(idx>0&&rows[idx-1].ib&&!d.ib){
+      const sep=document.createElement('tr');sep.className='sep';
+      sep.innerHTML=`<td colspan="11"></td>`;tbody.appendChild(sep);
+    }
+    const tot=d.c.reduce((a,b)=>a+b,0);
+    const bar=`<div class="mbar">${d.c.map((v,i)=>`<div class="mseg" style="width:${(v/tot*100).toFixed(1)}%;background:${RCOLS_IND[i]}"></div>`).join('')}</div>`;
+    const tr=document.createElement('tr');
+    tr.className=d.ib?'ib':'';
+    tr.innerHTML=`<td class="grp bold">${d.grp}</td>
+      <td class="r bold">${d.conv.toFixed(1)}%</td>
+      <td>${bar}</td>
+      ${d.c.map(v=>`<td class="r">${v.toFixed(1)}%</td>`).join('')}`;
+    tbody.appendChild(tr);
+  });
+
+  const legEl=document.getElementById(legId);
+  if(legEl) legEl.innerHTML=RLABS.map((l,i)=>
+    `<span class="li"><span class="ld" style="background:${RCOLS_IND[i]}"></span>${l}</span>`).join('');
+}
+
+</script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&family=IBM+Plex+Sans:wght@300;400;500&display=swap');
-  :root {
-    --verd:#0F6E56;--verd-m:#1D9E75;--verd-pa:#9FE1CB;
-    --blau:#185FA5;--blau-m:#378ADD;--blau-pa:#B5D4F4;--blau-mit:#85B7EB;
-    --tarc:#D85A30;--groc:#EF9F27;--morat:#7F77DD;
-    --gris:#5F5E5A;--gris-pa:#B4B2A9;--verd-clar:#5DCAA5;
-    --bg:#F8F7F4;--bg-card:#FFFFFF;--text-1:#1A1917;--text-2:#4A4845;--text-3:#888780;
-    --border:#E2E0DC;
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@300;400;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap');
+  :root{
+    --verd:#0F6E56;--verd-m:#1D9E75;--verd-pa:#D4EFE7;
+    --blau:#185FA5;--blau-mit:#85B7EB;
+    --tarc:#D85A30;--groc:#EF9F27;--morat:#7F77DD;--verd-clar:#5DCAA5;
+    --gris-m:#888780;--gris-pa:#B4B2A9;
+    --bg:#F8F7F4;--bg-card:#FFFFFF;
+    --text-1:#1A1917;--text-2:#4A4845;--text-3:#888780;--border:#E2E0DC;
   }
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text-1);font-size:14px;line-height:1.6}
-  .container{max-width:960px;margin:0 auto;padding:2.5rem 2rem 4rem}
+  .container{max-width:980px;margin:0 auto;padding:2.5rem 2rem 4rem}
   .header{margin-bottom:2.5rem;padding-bottom:1.5rem;border-bottom:1px solid var(--border)}
   .header-top{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap}
-  .header h1{font-family:'Source Serif 4',Georgia,serif;font-size:26px;font-weight:600;line-height:1.2;color:var(--text-1);max-width:600px}
-  .header-badge{background:var(--verd);color:#fff;font-size:11px;font-weight:500;padding:4px 10px;border-radius:3px;white-space:nowrap;margin-top:4px}
-  .header-sub{font-size:13px;color:var(--text-3);margin-top:8px}
-  .header-sub span{color:var(--verd-m);font-weight:500}
+  .header h1{font-family:'Source Serif 4',Georgia,serif;font-size:26px;font-weight:600;line-height:1.2;max-width:640px}
+  .badge{background:var(--verd);color:#fff;font-size:11px;font-weight:500;padding:4px 10px;border-radius:3px;white-space:nowrap;margin-top:4px}
+  .header-sub{font-size:12px;color:var(--text-3);margin-top:6px}
+  .header-sub strong{color:var(--verd-m)}
   .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:2.5rem}
   .kpi{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;border-top:3px solid var(--verd-m)}
-  .kpi-label{font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+  .kpi-label{font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
   .kpi-value{font-family:'Source Serif 4',serif;font-size:28px;font-weight:600;color:var(--verd);line-height:1}
-  .kpi-delta{font-size:11px;color:var(--text-3);margin-top:4px}
+  .kpi-delta{font-size:11px;color:var(--text-3);margin-top:3px}
   .section{margin-bottom:3rem}
-  .section-header{margin-bottom:1rem}
   .section-tag{font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--verd-m);margin-bottom:4px}
-  .section-title{font-family:'Source Serif 4',serif;font-size:18px;font-weight:400;color:var(--text-1);margin-bottom:3px}
-  .section-sub{font-size:12px;color:var(--text-2);line-height:1.5}
+  .section-title{font-family:'Source Serif 4',serif;font-size:18px;font-weight:400;margin-bottom:3px}
+  .section-sub{font-size:12px;color:var(--text-2);line-height:1.5;margin-bottom:.9rem}
   .card{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:1.25rem 1.5rem;overflow:hidden}
   .card+.card{margin-top:1rem}
-  .note{font-size:11px;color:var(--text-3);line-height:1.55;margin-top:.85rem;padding-top:.7rem;border-top:1px solid var(--border)}
-  .legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:.75rem;cursor:pointer}
-  .li{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-2);padding:3px 6px;border-radius:3px;transition:opacity .2s}
+  .card-label{font-size:13px;font-weight:500;margin-bottom:.75rem}
+  .foot{font-size:10px;color:var(--text-3);line-height:1.55;margin-top:.85rem;padding-top:.65rem;border-top:1px solid var(--border)}
+  .legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:.65rem;cursor:pointer}
+  .li{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-2);padding:2px 5px;border-radius:3px;transition:opacity .2s;user-select:none}
   .li:hover{background:rgba(0,0,0,.04)}
-  .li.hidden{opacity:.35}
+  .li.hidden{opacity:.3}
   .ld{width:10px;height:10px;border-radius:2px;flex-shrink:0}
-  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
-  .card-label{font-size:13px;font-weight:500;margin-bottom:2px}
-  .card-sublabel{font-size:11px;color:var(--text-3);margin-bottom:1rem}
-  .chart-wrap{position:relative;width:100%}
-  @media(max-width:640px){.kpis{grid-template-columns:1fr 1fr}.two-col{grid-template-columns:1fr}.kpi-value{font-size:22px}}
+  .cw{position:relative;width:100%}
+  /* Taula combo */
+  .ctbl{width:100%;border-collapse:collapse;font-size:12px}
+  .ctbl thead th{font-size:10px;font-weight:500;color:var(--text-3);padding:.45rem .75rem;border-bottom:2px solid var(--border);text-align:left;white-space:nowrap}
+  .ctbl thead th.r{text-align:right}
+  .ctbl tbody td{padding:.55rem .75rem;border-bottom:1px solid var(--border);vertical-align:middle}
+  .ctbl tbody td.r{text-align:right;font-variant-numeric:tabular-nums}
+  .ctbl tbody td.bold{font-weight:500}
+  .ctbl tbody tr.ib td{background:rgba(15,110,86,.04)}
+  .ctbl tbody tr.ib td.grp{color:var(--verd);font-weight:500}
+  .ctbl tbody tr.sep td{background:var(--bg);padding:.15rem;border:none}
+  .mbar{display:flex;height:12px;border-radius:3px;overflow:hidden;gap:1px;width:100%;min-width:100px}
+  .mseg{height:100%}
+  .leg-tbl{display:flex;flex-wrap:wrap;gap:12px;margin-top:.75rem}
+  @media(max-width:640px){.kpis{grid-template-columns:1fr 1fr}.kpi-value{font-size:22px}}
 </style>
+
+<!--[if gte mso 9]><xml>
+<mso:CustomDocumentProperties>
+<mso:_dlc_DocId msdt:dt="string">NXEMYWP4CTEQ-757066276-332036</mso:_dlc_DocId>
+<mso:_dlc_DocIdItemGuid msdt:dt="string">0793d724-60c9-4a32-83d4-aa4ec33c9be0</mso:_dlc_DocIdItemGuid>
+<mso:_dlc_DocIdUrl msdt:dt="string">https://caib.sharepoint.com/sites/ARXIUS-OBSTRE/_layouts/15/DocIdRedir.aspx?ID=NXEMYWP4CTEQ-757066276-332036, NXEMYWP4CTEQ-757066276-332036</mso:_dlc_DocIdUrl>
+</mso:CustomDocumentProperties>
+</xml><![endif]-->
 </head>
 <body>
 <div class="container">
@@ -55,9 +113,9 @@
 <div class="header">
   <div class="header-top">
     <h1>Dificultats d'accés a l'habitatge<br>a les Illes Balears</h1>
-    <span class="header-badge">ECV 2025 · INE</span>
+    <span class="badge">ECV 2025 · INE</span>
   </div>
-  <div class="header-sub">Mòdul especial · Any de referència 2024–2025 · <span>Govern de les Illes Balears · Direcció General d'Economia i Estadística</span></div>
+  <div class="header-sub">Enquesta de Condicions de Vida 2025 (INE) · Mòdul sobre dificultats d'accés a l'habitatge · Any de referència 2024–2025<br><strong>Direcció General d'Economia i Estadística · Govern de les Illes Balears</strong></div>
 </div>
 
 <div class="kpis">
@@ -68,8 +126,8 @@
   </div>
   <div class="kpi">
     <div class="kpi-label">Han cercat sense trobar · IB</div>
-    <div class="kpi-value">10,5%</div>
-    <div class="kpi-delta">1a comunitat autònoma · Espanya 7,5%</div>
+    <div class="kpi-value">10,6%</div>
+    <div class="kpi-delta">1a comunitat autònoma · Espanya 7,6%</div>
   </div>
   <div class="kpi">
     <div class="kpi-label">Joves 26–34 que conviuen · IB</div>
@@ -80,342 +138,240 @@
 
 <!-- A3 -->
 <div class="section">
-  <div class="section-header">
-    <div class="section-tag">Canvis d'habitatge · Per comunitat autònoma</div>
-    <div class="section-title">Persones que han canviat d'habitatge en els darrers 12 mesos</div>
-    <div class="section-sub">Percentatge de persones de 16 i més anys.</div>
-  </div>
+  <div class="section-tag">Canvis d'habitatge · Per comunitat autònoma</div>
+  <div class="section-title">Persones que han canviat d'habitatge en els darrers 12 mesos</div>
+  <div class="section-sub">Percentatge de persones de 16 i més anys.</div>
   <div class="card">
-    <div class="chart-wrap" style="height:480px">
-      <canvas id="ch-a3" role="img" aria-label="Barres horitzontals: percentatge de persones que han canviat d'habitatge per CA. Illes Balears 5,3%, primera posició."></canvas>
-    </div>
-    <div class="note">Percentatge calculat sobre el total de persones de 16 i més anys. Illes Balears destacada en verd. La línia indica la mitjana d'Espanya (3,9%).</div>
+    <div class="cw" style="height:480px"><canvas id="ch-a3"></canvas></div>
+    <div class="foot">Font: Elaboració pròpia a partir de les microdades de l'Enquesta de Condicions de Vida 2025 (INE), mòdul sobre dificultats d'accés a l'habitatge.</div>
   </div>
 </div>
 
 <!-- A1 -->
 <div class="section">
-  <div class="section-header">
-    <div class="section-tag">Demanda insatisfeta · Per comunitat autònoma</div>
-    <div class="section-title">Han cercat activament un habitatge diferent sense canviar de residència</div>
-    <div class="section-sub">Percentatge de persones de 16 i més anys, i raó principal per no haver canviat.</div>
-  </div>
+  <div class="section-tag">Demanda insatisfeta · Per comunitat autònoma</div>
+  <div class="section-title">Han cercat activament un habitatge diferent sense canviar de residència</div>
+  <div class="section-sub">Percentatge de persones de 16 i més anys. Raó principal per no haver canviat, calculada sobre els cercadors.</div>
   <div class="card">
-    <div class="chart-wrap" style="height:600px">
-      <canvas id="ch-a1" role="img" aria-label="Barres apilades: percentatge de cerca activa i raons per CA."></canvas>
-    </div>
+    <div class="cw" style="height:600px"><canvas id="ch-a1"></canvas></div>
     <div class="legend" id="leg-a1"></div>
-    <div class="note">Les barres mostren el percentatge que ha cercat activament. Els segments indiquen la raó principal per no haver canviat, calculada sobre els cercadors que han respost la pregunta. Feu clic als elements de la llegenda per activar o desactivar categories.</div>
+    <div class="foot">Font: INE. Enquesta de Condicions de Vida 2025, mòdul sobre dificultats d'accés a l'habitatge. Taula "Persones de 16 o més anys que no han canviat de vivenda en els darrers 12 mesos malgrat haver-ho buscat activament i raó principal, per comunitat autònoma". Nota: "L'habitatge no reunia els requisits" inclou la localització inadequada i les condicions habitacionals. El valor de Melilla per a "Jo no reunia les condicions" no es publica per insuficiència mostral.</div>
   </div>
 </div>
 
 <!-- A4 -->
 <div class="section">
-  <div class="section-header">
-    <div class="section-tag">Joves amb progenitors · Per comunitat autònoma</div>
-    <div class="section-title">Joves que conviuen amb els seus progenitors, per grup d'edat</div>
-    <div class="section-sub">Percentatge sobre el total de joves de cada grup d'edat.</div>
-  </div>
+  <div class="section-tag">Joves amb progenitors · Per comunitat autònoma</div>
+  <div class="section-title">Joves que conviuen amb els seus progenitors, per grup d'edat</div>
+  <div class="section-sub">Percentatge sobre el total de joves de cada grup d'edat.</div>
   <div class="card">
-    <div class="chart-wrap" style="height:520px">
-      <canvas id="ch-a4" role="img" aria-label="Barres agrupades: percentatge de joves que conviuen per CA. Grups 18-25 i 26-34."></canvas>
-    </div>
+    <div class="cw" style="height:520px"><canvas id="ch-a4"></canvas></div>
     <div class="legend" id="leg-a4"></div>
-    <div class="note">Les dades d'Espanya corresponen a les xifres publicades per l'INE (18–25: 93,4%; 26–34: 44,3%). Les estimacions per comunitat autònoma provenen de les microdades públiques de l'ECV 2025. Feu clic als elements de la llegenda per activar o desactivar grups d'edat.</div>
+    <div class="foot">Font: dades d'Espanya publicades per l'INE (ECV 2025, mòdul sobre dificultats d'accés a l'habitatge). Estimació per comunitat autònoma: elaboració pròpia a partir de les microdades. Nota: les dades de les Illes Balears (43,8%; N=66 convivents) s'han d'interpretar amb cautela; el marge d'error aproximat és de ±8 punts percentuals.</div>
   </div>
 </div>
 
 <!-- A5 -->
 <div class="section">
-  <div class="section-header">
-    <div class="section-tag">Raons de convivència · Joves 26–34 anys</div>
-    <div class="section-title">Per quina raó principal conviuen amb els progenitors</div>
-    <div class="section-sub">Percentatge sobre els joves de 26 a 34 anys que conviuen.</div>
+  <div class="section-tag">Raons de convivència · Joves 26–34 anys</div>
+  <div class="section-title">Per quina raó principal conviuen amb els progenitors</div>
+  <div class="section-sub">Percentatge sobre els joves de 26 a 34 anys que conviuen. Illes Balears i Espanya.</div>
+
+  <!-- Taula-combo raons totals -->
+  <div class="card">
+    <div class="card-label">Illes Balears i Espanya · Total 26–34 anys</div>
+    <table class="ctbl" id="tbl-tot"></table>
+    <div class="leg-tbl" id="leg-tot"></div>
+    <div class="foot">Font: Elaboració pròpia a partir de les microdades de l'Enquesta de Condicions de Vida 2025 (INE), mòdul sobre dificultats d'accés a l'habitatge.</div>
   </div>
-  <div class="two-col">
-    <div class="card">
-      <div class="card-label">Illes Balears</div>
-      <div class="chart-wrap" style="height:240px">
-        <canvas id="ch-ib" role="img" aria-label="Barres raons de convivència a les Illes Balears."></canvas>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-label">Espanya</div>
-      <div class="chart-wrap" style="height:240px">
-        <canvas id="ch-esp" role="img" aria-label="Barres raons de convivència a Espanya."></canvas>
-      </div>
-    </div>
+
   </div>
-  <div class="card" style="margin-top:1rem">
-    <div class="card-label" style="margin-bottom:.75rem">Illes Balears vs Espanya · Raons comparades</div>
-    <div class="chart-wrap" style="height:260px">
-      <canvas id="ch-comp" role="img" aria-label="Barres agrupades comparant raons IB i Espanya per als joves 26-34."></canvas>
-    </div>
-    <div class="legend" id="leg-comp"></div>
-    <div class="note">Raons del qüestionari: 1 No s'ho ha plantejat · 2 No em puc permetre llogar un habitatge · 3 No puc fer front a l'entrada per comprar una vivenda · 4 No reuneixo les condicions per obtenir una hipoteca · 5 Estic estalviant per comprar o llogar la meva pròpia vivenda · 6 Puc pagar un lloguer o comprar-me una vivenda, però prefereixo viure així · 7 Una altra raó. Feu clic als elements de la llegenda per activar o desactivar categories.</div>
-  </div>
-</div>
 
 </div>
 <script>
 Chart.defaults.font.family="'IBM Plex Sans',sans-serif";
 Chart.defaults.color='#888780';
+const fmt=v=>v.toFixed(1)+'%';
 
-const C={
-  verd:'#1D9E75',verdF:'#0F6E56',verdPa:'#9FE1CB',verdClar:'#5DCAA5',
-  blau:'#378ADD',blauF:'#185FA5',blauPa:'#B5D4F4',blauMit:'#85B7EB',
-  tarc:'#D85A30',groc:'#EF9F27',morat:'#7F77DD',
-  gris:'#888780',grisPa:'#B4B2A9',text2:'#4A4845',text3:'#888780'
-};
-
-const fmt=v=>v%1===0?v+'%':v.toFixed(1)+'%';
-
-// Llegenda interactiva
-function mkLeg(containerId,chart,labels,colors){
-  const el=document.getElementById(containerId);
-  if(!el)return;
-  el.innerHTML=labels.map((l,i)=>`
-    <span class="li" data-idx="${i}" title="Feu clic per mostrar/ocultar">
-      <span class="ld" style="background:${colors[i]}"></span>${l}
-    </span>`).join('');
-  el.querySelectorAll('.li').forEach(item=>{
-    item.addEventListener('click',()=>{
-      const i=+item.dataset.idx;
-      const meta=chart.getDatasetMeta(i);
-      meta.hidden=!meta.hidden;
-      item.classList.toggle('hidden',meta.hidden);
-      chart.update();
+function mkLeg(id,chart,labels,colors){
+  const el=document.getElementById(id);if(!el)return;
+  el.innerHTML=labels.map((l,i)=>`<span class="li" data-i="${i}"><span class="ld" style="background:${colors[i]}"></span>${l}</span>`).join('');
+  el.querySelectorAll('.li').forEach(s=>{
+    s.addEventListener('click',()=>{
+      const i=+s.dataset.i,m=chart.getDatasetMeta(i);
+      m.hidden=!m.hidden;s.classList.toggle('hidden',m.hidden);chart.update();
     });
   });
 }
 
 // ── A3 ──────────────────────────────────────────────────────────
 const A3=[
-  ['Illes Balears',5.3,true],['Madrid',5.0],['Catalunya',4.5],
-  ['Cantàbria',4.4],['País Basc',4.3],['Melilla',4.2],['Canàries',4.2],
-  ['Navarra',4.1],['Múrcia',3.6],['Astúries',3.8],['Galícia',3.8],
-  ['Espanya',3.9,false,true],['C. Valenciana',3.3],['La Rioja',3.3],
-  ['Aragó',3.5],['Andalusia',3.4],['Ceuta',3.1],['Castella i Lleó',3.1],
-  ['Castella-La Manxa',2.9],['Extremadura',2.7]
-].sort((a,b)=>b[1]-a[1]);
-
-new Chart(document.getElementById('ch-a3'),{
-  type:'bar',
-  data:{
-    labels:A3.map(d=>d[0]),
-    datasets:[{
-      label:'Han canviat (%)',
-      data:A3.map(d=>d[1]),
-      backgroundColor:A3.map(d=>d[2]?C.verdF:d[3]?C.gris:C.blauMit),
-      borderRadius:3,barThickness:14
-    }]
-  },
-  options:{
-    responsive:true,maintainAspectRatio:false,indexAxis:'y',
-    plugins:{
-      legend:{display:false},
-      tooltip:{callbacks:{label:c=>` ${fmt(c.parsed.x)}`}},
-      annotation:{
-        annotations:{
-          mitj:{type:'line',xMin:3.9,xMax:3.9,borderColor:'rgba(136,135,128,.5)',
-            borderWidth:1.5,borderDash:[4,3],
-            label:{content:'Espanya 3,9%',display:true,position:'end',
-              backgroundColor:'rgba(255,255,255,.85)',color:C.gris,font:{size:10}}}
-        }
-      }
-    },
+  {n:"Illes Balears",v:5.3,ib:true},{n:"Ceuta",v:5.0},{n:"Catalunya",v:4.7},
+  {n:"Aragó",v:4.5},{n:"Madrid",v:4.5},{n:"Castella-La Manxa",v:4.5},
+  {n:"Navarra",v:4.2},{n:"La Rioja",v:4.2},{n:"Cantàbria",v:4.1},
+  {n:"Galícia",v:4.0},{n:"Espanya",v:3.9,esp:true},{n:"C. Valenciana",v:3.8},
+  {n:"Astúries",v:3.6},{n:"Castella i Lleó",v:3.6},{n:"Melilla",v:3.3},
+  {n:"Canàries",v:3.3},{n:"País Basc",v:3.2},{n:"Andalusia",v:2.9},
+  {n:"Múrcia",v:2.6},{n:"Extremadura",v:1.9}
+];
+new Chart(document.getElementById('ch-a3'),{type:'bar',
+  data:{labels:A3.map(d=>d.n),datasets:[{
+    label:'Han canviat (%)',data:A3.map(d=>d.v),
+    backgroundColor:A3.map(d=>d.ib?'#0F6E56':d.esp?'#888780':'#85B7EB'),
+    borderRadius:3,barThickness:14}]},
+  options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${fmt(c.parsed.x)}`}}},
     scales:{
-      x:{max:7,grid:{color:'rgba(0,0,0,.04)',drawBorder:false},border:{display:false},
+      x:{max:6.0,grid:{color:'rgba(0,0,0,.04)',drawBorder:false},border:{display:false},
          ticks:{callback:v=>`${v}%`,font:{size:11}}},
       y:{grid:{display:false},border:{display:false},
-         ticks:{font:{size:11},color:ctx=>A3[ctx.index]?.[2]?'#0F6E56':A3[ctx.index]?.[3]?'#4A4845':'#888780'}}
-    }
-  }
+         ticks:{font:{size:11},color:ctx=>A3[ctx.index]?.ib?'#0F6E56':A3[ctx.index]?.esp?'#4A4845':'#888780'}}
+    }}
 });
 
 // ── A1 ──────────────────────────────────────────────────────────
 const A1=[
-  {nom:'Illes Balears',pct:10.5,preu:75.9,req:1.7,cond:3.3,alt:19.1,ib:true},
-  {nom:'Madrid',pct:10.2,preu:70.1,req:5.8,cond:5.9,alt:18.3},
-  {nom:'Melilla',pct:9.0,preu:81.3,req:3.9,cond:0.0,alt:14.8},
-  {nom:'Canàries',pct:8.9,preu:67.4,req:6.9,cond:6.3,alt:19.5},
-  {nom:'Catalunya',pct:8.7,preu:65.3,req:7.0,cond:9.6,alt:18.1},
-  {nom:'Navarra',pct:8.2,preu:53.4,req:7.2,cond:7.9,alt:31.5},
-  {nom:'Espanya',pct:7.5,preu:67.2,req:6.6,cond:6.6,alt:19.6,esp:true},
-  {nom:'Galícia',pct:7.4,preu:71.4,req:4.3,cond:3.8,alt:20.5},
-  {nom:'Andalusia',pct:6.9,preu:68.3,req:7.1,cond:6.9,alt:17.7},
-  {nom:'Castella i Lleó',pct:6.8,preu:64.9,req:5.9,cond:5.9,alt:23.3},
-  {nom:'Astúries',pct:6.6,preu:53.4,req:15.2,cond:7.5,alt:23.9},
-  {nom:'País Basc',pct:6.6,preu:61.0,req:5.6,cond:7.6,alt:25.7},
-  {nom:'Ceuta',pct:6.6,preu:44.8,req:22.9,cond:1.9,alt:30.3},
-  {nom:'Múrcia',pct:6.5,preu:67.3,req:7.7,cond:4.6,alt:20.5},
-  {nom:'C. Valenciana',pct:6.3,preu:68.0,req:8.5,cond:5.6,alt:17.9},
-  {nom:'Cantàbria',pct:6.2,preu:59.9,req:4.6,cond:3.8,alt:31.8},
-  {nom:'La Rioja',pct:6.1,preu:57.8,req:10.0,cond:7.6,alt:24.6},
-  {nom:'Aragó',pct:5.4,preu:66.0,req:9.8,cond:8.5,alt:15.8},
-  {nom:'Castella-La Manxa',pct:5.3,preu:68.7,req:5.9,cond:3.5,alt:21.9},
-  {nom:'Extremadura',pct:3.9,preu:57.9,req:4.7,cond:7.9,alt:29.6}
+  {n:'Illes Balears',pct:10.6,preu:75.9,req:1.7,cond:3.3,alt:19.1,ib:true},
+  {n:'Madrid',pct:10.2,preu:70.1,req:5.8,cond:5.9,alt:18.3},
+  {n:'Melilla',pct:9.0,preu:81.3,req:3.9,cond:0,alt:14.8,nd:true},
+  {n:'Canàries',pct:8.9,preu:67.4,req:6.9,cond:6.3,alt:19.5},
+  {n:'Catalunya',pct:8.7,preu:65.3,req:7.0,cond:9.6,alt:18.1},
+  {n:'Navarra',pct:8.2,preu:53.4,req:7.2,cond:7.9,alt:31.5},
+  {n:'Espanya',pct:7.6,preu:67.2,req:6.6,cond:6.6,alt:19.6,esp:true},
+  {n:'Galícia',pct:7.4,preu:71.4,req:4.3,cond:3.8,alt:20.5},
+  {n:'Andalusia',pct:6.9,preu:68.3,req:7.1,cond:6.9,alt:17.7},
+  {n:'Castella i Lleó',pct:6.8,preu:64.9,req:5.9,cond:5.9,alt:23.3},
+  {n:'Astúries',pct:6.6,preu:53.4,req:15.2,cond:7.5,alt:23.9},
+  {n:'País Basc',pct:6.6,preu:61.0,req:5.6,cond:7.6,alt:25.7},
+  {n:'Ceuta',pct:6.6,preu:44.8,req:22.9,cond:1.9,alt:30.3},
+  {n:'Múrcia',pct:6.5,preu:67.3,req:7.7,cond:4.6,alt:20.5},
+  {n:'C. Valenciana',pct:6.3,preu:68.0,req:8.5,cond:5.6,alt:17.9},
+  {n:'Cantàbria',pct:6.2,preu:59.9,req:4.6,cond:3.8,alt:31.8},
+  {n:'La Rioja',pct:6.1,preu:57.8,req:10.0,cond:7.6,alt:24.6},
+  {n:'Aragó',pct:5.4,preu:66.0,req:9.8,cond:8.5,alt:15.8},
+  {n:'Castella-La Manxa',pct:5.3,preu:68.7,req:5.9,cond:3.5,alt:21.9},
+  {n:'Extremadura',pct:3.9,preu:57.9,req:4.7,cond:7.9,alt:29.6}
 ].sort((a,b)=>b.pct-a.pct);
-
-const chA1=new Chart(document.getElementById('ch-a1'),{
-  type:'bar',
-  data:{
-    labels:A1.map(d=>d.nom),
-    datasets:[
-      {label:'El preu era excessiu',
-       data:A1.map(d=>+(d.pct*d.preu/100).toFixed(2)),
-       backgroundColor:'#1D9E75',borderRadius:{topLeft:0,topRight:0,bottomLeft:3,bottomRight:3},stack:'s'},
-      {label:"L'habitatge no reunia els requisits",
-       data:A1.map(d=>+(d.pct*d.req/100).toFixed(2)),
-       backgroundColor:'#378ADD',stack:'s'},
-      {label:"Jo no reunia les condicions exigides",
-       data:A1.map(d=>+(d.pct*d.cond/100).toFixed(2)),
-       backgroundColor:'#D85A30',stack:'s'},
-      {label:'Altres raons',
-       data:A1.map(d=>+(d.pct*d.alt/100).toFixed(2)),
-       backgroundColor:'#B4B2A9',borderRadius:{topLeft:3,topRight:3,bottomLeft:0,bottomRight:0},stack:'s'}
-    ]
-  },
-  options:{
-    responsive:true,maintainAspectRatio:false,indexAxis:'y',
-    plugins:{
-      legend:{display:false},
-      tooltip:{callbacks:{
-        label:c=>` ${c.dataset.label}: ${fmt(c.parsed.x)}`,
-        footer:items=>`Total que ha cercat: ${fmt(A1[items[0].dataIndex].pct)}`
-      }}
-    },
+const chA1=new Chart(document.getElementById('ch-a1'),{type:'bar',
+  data:{labels:A1.map(d=>d.n),datasets:[
+    {label:'El preu era excessiu',
+     data:A1.map(d=>+(d.pct*d.preu/100).toFixed(2)),
+     backgroundColor:'#1D9E75',stack:'s',
+     borderRadius:{topLeft:0,topRight:0,bottomLeft:3,bottomRight:3}},
+    {label:"L'habitatge no reunia els requisits",
+     data:A1.map(d=>+(d.pct*d.req/100).toFixed(2)),
+     backgroundColor:'#378ADD',stack:'s'},
+    {label:'Jo no reunia les condicions exigides',
+     data:A1.map(d=>+(d.pct*d.cond/100).toFixed(2)),
+     backgroundColor:'#D85A30',stack:'s'},
+    {label:'Altres raons',
+     data:A1.map(d=>+(d.pct*d.alt/100).toFixed(2)),
+     backgroundColor:'#B4B2A9',stack:'s',
+     borderRadius:{topLeft:3,topRight:3,bottomLeft:0,bottomRight:0}}
+  ]},
+  options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
+    plugins:{legend:{display:false},tooltip:{callbacks:{
+      label:c=>` ${c.dataset.label}: ${fmt(c.parsed.x)}`,
+      footer:items=>`Total: ${fmt(A1[items[0].dataIndex].pct)}`+(A1[items[0].dataIndex].nd?' · valor condicions no disponible (Melilla)':'')
+    }}},
     scales:{
-      x:{stacked:true,max:13,grid:{color:'rgba(0,0,0,.04)',drawBorder:false},
+      x:{stacked:true,max:12,grid:{color:'rgba(0,0,0,.04)',drawBorder:false},
          border:{display:false},ticks:{callback:v=>`${v}%`,font:{size:11}}},
       y:{stacked:true,grid:{display:false},border:{display:false},
          ticks:{font:{size:11},color:ctx=>A1[ctx.index]?.ib?'#0F6E56':A1[ctx.index]?.esp?'#4A4845':'#888780'}}
-    }
-  }
+    }}
 });
 mkLeg('leg-a1',chA1,
-  ["El preu era excessiu","L'habitatge no reunia els requisits","Jo no reunia les condicions exigides","Altres raons"],
+  ["El preu era excessiu","L'habitatge no reunia els requisits",
+   "Jo no reunia les condicions exigides","Altres raons"],
   ['#1D9E75','#378ADD','#D85A30','#B4B2A9']);
 
 // ── A4 ──────────────────────────────────────────────────────────
 const A4=[
-  {nom:'Extremadura',p25:95.6,p34:62.3},
-  {nom:'Ceuta',p25:96.2,p34:64.7},
-  {nom:'Melilla',p25:96.0,p34:62.4},
-  {nom:'Castella-La Manxa',p25:95.0,p34:57.4},
-  {nom:'Múrcia',p25:95.1,p34:58.1},
-  {nom:'Andalusia',p25:94.7,p34:55.2},
-  {nom:'Castella i Lleó',p25:93.3,p34:51.4},
-  {nom:'C. Valenciana',p25:93.6,p34:50.8},
-  {nom:'Canàries',p25:92.4,p34:48.7},
-  {nom:'Madrid',p25:91.8,p34:47.5},
-  {nom:'La Rioja',p25:92.5,p34:46.8},
-  {nom:'Astúries',p25:90.8,p34:46.1},
-  {nom:'Cantàbria',p25:92.1,p34:44.4},
-  {nom:'Espanya (INE)',p25:93.4,p34:44.3,esp:true},
-  {nom:'Illes Balears',p25:89.9,p34:43.8,ib:true},
-  {nom:'Galícia',p25:90.1,p34:42.6},
-  {nom:'Aragó',p25:90.8,p34:41.8},
-  {nom:'Catalunya',p25:90.3,p34:40.6},
-  {nom:'Navarra',p25:91.2,p34:40.1},
-  {nom:'País Basc',p25:90.0,p34:37.9}
-].sort((a,b)=>b.p34-a.p34);
-
-const chA4=new Chart(document.getElementById('ch-a4'),{
-  type:'bar',
-  data:{
-    labels:A4.map(d=>d.nom),
-    datasets:[
-      {label:'18–25 anys',
-       data:A4.map(d=>d.p25),
-       backgroundColor:A4.map(d=>d.ib?'rgba(15,110,86,.25)':d.esp?'rgba(136,135,128,.2)':'rgba(133,183,235,.55)'),
-       borderRadius:3,barThickness:10},
-      {label:'26–34 anys',
-       data:A4.map(d=>d.p34),
-       backgroundColor:A4.map(d=>d.ib?'#0F6E56':d.esp?'#888780':'#185FA5'),
-       borderRadius:3,barThickness:10}
-    ]
-  },
-  options:{
-    responsive:true,maintainAspectRatio:false,indexAxis:'y',
-    plugins:{
-      legend:{display:false},
-      tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${fmt(c.parsed.x)}`}}
-    },
+  {n:"Ceuta",p25:90.5,p34:64.7},{n:"Canàries",p25:91.6,p34:59.6},
+  {n:"Castella i Lleó",p25:94.5,p34:52.3},{n:"Navarra",p25:95.7,p34:51.2},
+  {n:"Andalusia",p25:95.6,p34:50.4},{n:"Cantàbria",p25:93.2,p34:50.0},
+  {n:"Galícia",p25:88.9,p34:49.0},{n:"Castella-La Manxa",p25:92.2,p34:49.0},
+  {n:"Múrcia",p25:85.0,p34:48.9},{n:"Extremadura",p25:89.3,p34:47.8},
+  {n:"Melilla",p25:90.8,p34:46.0},{n:"C. Valenciana",p25:92.3,p34:45.1},
+  {n:"Madrid",p25:92.4,p34:45.0},{n:"Espanya (INE)",p25:93.4,p34:44.3,esp:true},
+  {n:"Aragó",p25:90.0,p34:44.1},{n:"Illes Balears",p25:94.0,p34:43.8,ib:true},
+  {n:"Astúries",p25:95.9,p34:41.8},{n:"La Rioja",p25:88.2,p34:39.7},
+  {n:"País Basc",p25:93.9,p34:38.5},{n:"Catalunya",p25:91.2,p34:36.8}
+];
+const chA4=new Chart(document.getElementById('ch-a4'),{type:'bar',
+  data:{labels:A4.map(d=>d.n),datasets:[
+    {label:'18–25 anys',data:A4.map(d=>d.p25),
+     backgroundColor:A4.map(d=>d.ib?'rgba(15,110,86,.22)':d.esp?'rgba(136,135,128,.2)':'rgba(133,183,235,.5)'),
+     borderRadius:3,barThickness:10},
+    {label:'26–34 anys',data:A4.map(d=>d.p34),
+     backgroundColor:A4.map(d=>d.ib?'#0F6E56':d.esp?'#888780':'#185FA5'),
+     borderRadius:3,barThickness:10}
+  ]},
+  options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${fmt(c.parsed.x)}`}}},
     scales:{
-      x:{max:100,grid:{color:'rgba(0,0,0,.04)',drawBorder:false},
-         border:{display:false},ticks:{callback:v=>`${v}%`,font:{size:11}}},
+      x:{max:100,grid:{color:'rgba(0,0,0,.04)',drawBorder:false},border:{display:false},
+         ticks:{callback:v=>`${v}%`,font:{size:11}}},
       y:{grid:{display:false},border:{display:false},
          ticks:{font:{size:11},color:ctx=>A4[ctx.index]?.ib?'#0F6E56':A4[ctx.index]?.esp?'#4A4845':'#888780'}}
-    }
-  }
+    }}
 });
-mkLeg('leg-a4',chA4,['18–25 anys','26–34 anys'],['rgba(133,183,235,.55)','#185FA5']);
+mkLeg('leg-a4',chA4,['18–25 anys','26–34 anys'],['rgba(133,183,235,.7)','#185FA5']);
 
-// ── A5 ──────────────────────────────────────────────────────────
-const RAONS=[
-  {curt:"No s'ho ha plantejat",     color:'#5DCAA5'},
-  {curt:'No em puc permetre llogar', color:'#378ADD'},
-  {curt:"No puc fer front a l'entrada per comprar", color:'#D85A30'},
-  {curt:'No reuneixo les condicions per a hipoteca', color:'#EF9F27'},
-  {curt:'Estic estalviant per comprar o llogar',     color:'#7F77DD'},
-  {curt:'Puc pagar però prefereixo viure així',      color:'#1D9E75'},
-  {curt:'Una altra raó',             color:'#B4B2A9'}
+// ── A5: TAULA-COMBO amb 7 codis individuals ──────────────────────
+const RLABS=[
+  "No m'he plantejat independitzar-me",
+  "No em puc permetre llogar un habitatge",
+  "No puc fer front a l'entrada per comprar",
+  "No reuneixo les condicions per a hipoteca",
+  "Estic estalviant per comprar o llogar",
+  "Puc pagar però prefereixo viure així",
+  "Una altra raó"
 ];
-const IB_T=[10.7,34.6,11.5,2.3,16.9,4.7,18.3];
-const ES_T=[24.6,34.3,10.1,2.2,12.9,1.9,13.9];
+const RCOLS=['#5DCAA5','#378ADD','#D85A30','#EF9F27','#7F77DD','#1D9E75','#B4B2A9'];
 
-function hBarRaons(id,data){
-  return new Chart(document.getElementById(id),{
-    type:'bar',
-    data:{
-      labels:RAONS.map(r=>r.curt),
-      datasets:[{
-        label:'Percentatge',data,
-        backgroundColor:RAONS.map(r=>r.color),
-        borderRadius:3,barThickness:18
-      }]
-    },
-    options:{
-      responsive:true,maintainAspectRatio:false,indexAxis:'y',
-      plugins:{
-        legend:{display:false},
-        tooltip:{callbacks:{label:c=>` ${fmt(c.parsed.x)}`}}
-      },
-      scales:{
-        x:{max:40,grid:{color:'rgba(0,0,0,.04)',drawBorder:false},
-           border:{display:false},ticks:{callback:v=>`${v}%`,font:{size:11}}},
-        y:{grid:{display:false},border:{display:false},ticks:{font:{size:11}}}
-      }
+const TOT=[
+  {grp:"Illes Balears",conv:43.8,c:[10.7,34.6,13.3,1.0,14.2,5.1,21.2],ib:true},
+  {grp:"Espanya",      conv:45.8,c:[24.6,34.3,10.1,2.2,12.9,1.9,13.9],ib:false}
+];
+
+(function(){
+  const tbl=document.getElementById('tbl-tot');
+  tbl.innerHTML=`<thead><tr>
+    <th style="width:140px">Grup</th>
+    <th class="r" style="width:75px">Conviuen<br>26–34 anys</th>
+    <th style="min-width:120px">Composició</th>
+    ${RLABS.map((l,i)=>{
+      const abbr=['No plantejat','No pot llogar','No pot comprar','No hip.','Estalviant','Prefereix','Altra raó'];
+      return `<th class="r" title="${l}" style="font-size:9px;white-space:normal;max-width:52px;line-height:1.3">${i+1}<br><span style="font-weight:400;color:var(--text-3)">${abbr[i]}</span></th>`;
+    }).join('')}
+  </tr></thead><tbody id="tbl-tot-body"></tbody>`;
+
+  const tbody=document.getElementById('tbl-tot-body');
+  TOT.forEach((d,idx)=>{
+    if(idx>0&&TOT[idx-1].ib&&!d.ib){
+      const sep=document.createElement('tr');sep.className='sep';
+      sep.innerHTML='<td colspan="11"></td>';tbody.appendChild(sep);
     }
+    const tot=d.c.reduce((a,b)=>a+b,0);
+    const bar=`<div class="mbar">${d.c.map((v,i)=>
+      `<div class="mseg" style="width:${(v/tot*100).toFixed(1)}%;background:${RCOLS[i]}"></div>`
+    ).join('')}</div>`;
+    const tr=document.createElement('tr');
+    tr.className=d.ib?'ib':'';
+    tr.innerHTML=`<td class="grp bold">${d.grp}</td>
+      <td class="r bold">${d.conv.toFixed(1)}%</td>
+      <td>${bar}</td>
+      ${d.c.map(v=>`<td class="r">${v.toFixed(1)}%</td>`).join('')}`;
+    tbody.appendChild(tr);
   });
-}
-hBarRaons('ch-ib', IB_T);
-hBarRaons('ch-esp',ES_T);
 
-const chComp=new Chart(document.getElementById('ch-comp'),{
-  type:'bar',
-  data:{
-    labels:RAONS.map(r=>r.curt),
-    datasets:[
-      {label:'Illes Balears',data:IB_T,backgroundColor:'#0F6E56',borderRadius:3,barThickness:14},
-      {label:'Espanya',      data:ES_T,backgroundColor:'#B4B2A9',borderRadius:3,barThickness:14}
-    ]
-  },
-  options:{
-    responsive:true,maintainAspectRatio:false,indexAxis:'y',
-    plugins:{
-      legend:{display:false},
-      tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${fmt(c.parsed.x)}`}}
-    },
-    scales:{
-      x:{max:40,grid:{color:'rgba(0,0,0,.04)',drawBorder:false},
-         border:{display:false},ticks:{callback:v=>`${v}%`,font:{size:11}}},
-      y:{grid:{display:false},border:{display:false},ticks:{font:{size:11}}}
-    }
-  }
-});
-mkLeg('leg-comp',chComp,['Illes Balears','Espanya'],['#0F6E56','#B4B2A9']);
+  const legEl=document.getElementById('leg-tot');
+  if(legEl) legEl.innerHTML=RLABS.map((l,i)=>
+    `<span class="li"><span class="ld" style="background:${RCOLS[i]}"></span>${i+1}. ${l}</span>`
+  ).join('');
+})();
 </script>
 </body>
 </html>
