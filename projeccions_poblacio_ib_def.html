@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Demografia balear a quinze anys vista: població, envelliment i habitatge</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root{
+    --ink:#16323A;
+    --ink-soft:#3C5560;
+    --paper:#EAEFEE;
+    --card:#FBFAF7;
+    --slate:#7C97A0;
+    --slate-soft:#D7DEDC;
+    --terracotta:#D97A53;
+    --terracotta-soft:#F3D9C8;
+    --border:#DCE3E1;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+    font-feature-settings:'tnum' 1;
+  }
+  .wrap{max-width:1140px;margin:0 auto;padding:0 24px 60px;}
+  header.band{
+    background:linear-gradient(135deg,#0F3D3E,#16323A);
+    color:#F4F1EA;
+    padding:34px 24px 30px;
+    margin-bottom:28px;
+  }
+  header.band .inner{max-width:1140px;margin:0 auto;}
+  .eyebrow{
+    text-transform:uppercase;
+    letter-spacing:.12em;
+    font-size:11.5px;
+    color:#C8D9D6;
+    font-weight:600;
+    margin:0 0 8px;
+  }
+  h1{
+    font-size:28px;
+    font-weight:700;
+    letter-spacing:-0.01em;
+    margin:0 0 8px;
+  }
+  header.band p.sub{
+    margin:0;
+    color:#BFD2CE;
+    font-size:14px;
+    max-width:640px;
+    line-height:1.5;
+  }
+  .kpi-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:14px;
+    margin-bottom:24px;
+  }
+  .kpi{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:16px 18px;
+  }
+  .kpi .label{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);font-weight:600;margin-bottom:6px;}
+  .kpi .value{font-size:24px;font-weight:700;color:var(--ink);}
+  .kpi .delta{font-size:12.5px;color:var(--terracotta);font-weight:600;margin-top:3px;}
+  .kpi .delta.muted{color:var(--slate);}
+  .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:22px 24px 16px;
+    margin-bottom:22px;
+  }
+  .card-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .card-head h2{font-size:17px;margin:0;font-weight:700;}
+  .card-head .caption{font-size:12.5px;color:var(--ink-soft);margin-top:3px;}
+  .controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .seg{display:inline-flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+  .seg button{
+    border:none;background:transparent;padding:7px 13px;font-size:12.5px;font-weight:600;
+    color:var(--ink-soft);cursor:pointer;font-family:inherit;
+  }
+  .seg button.active{background:var(--ink);color:#fff;}
+  select{
+    border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12.5px;
+    font-family:inherit;color:var(--ink);background:#fff;font-weight:600;
+  }
+  .year-pickers{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-soft);}
+  .chart-box{position:relative;width:100%;}
+  #chartLine{height:360px;}
+  #chartBar{height:600px;}
+  #chartDepLine{height:320px;}
+  #chartDepBar{height:600px;}
+  #chartHouse{height:600px;}
+  .legend-note{font-size:12px;color:var(--ink-soft);margin-top:10px;}
+  .legend-note span{display:inline-flex;align-items:center;gap:5px;margin-right:14px;}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
+  .proposal{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-left:4px solid var(--terracotta);
+    border-radius:var(--radius);
+    padding:22px 24px;
+  }
+  .proposal .eyebrow{color:var(--terracotta);}
+  .proposal p{font-size:13.5px;line-height:1.65;color:var(--ink-soft);margin:0 0 12px;}
+  .proposal p:last-child{margin-bottom:0;}
+  .proposal code{background:var(--slate-soft);padding:1px 6px;border-radius:5px;font-size:12px;color:var(--ink);}
+  footer{font-size:11.5px;color:var(--ink-soft);text-align:center;margin-top:18px;}
+  @media (max-width:760px){
+    .kpi-grid{grid-template-columns:repeat(2,1fr);}
+    #chartBar{height:680px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="band">
+  <div class="inner">
+    <p class="eyebrow">INE · Projecció de la població 2026–2041 · Resultats per CCAA</p>
+    <h1>Demografia balear a quinze anys vista: població, envelliment i habitatge</h1>
+    <p class="sub">El creixement poblacional projectat per a les Illes Balears és, amb diferència, el més depenent de la població nascuda a l'estranger entre totes les comunitats autònomes. Aquest panell en mostra l'evolució i la posiciona davant la resta de l'Estat.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="label">Població IB · 2026</div>
+      <div class="value">1.260.004</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Població IB · 2041 (projecció)</div>
+      <div class="value">1.463.575</div>
+      <div class="delta">+16,2% respecte 2026</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Creixement pob. nascuda a Espanya</div>
+      <div class="value">−0,3%</div>
+      <div class="delta muted">890.524 → 888.120 (2026-2041)</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Creixement pob. nascuda a l'estranger</div>
+      <div class="value">+55,7%</div>
+      <div class="delta">369.480 → 575.455 (2026-2041)</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Pes pob. nascuda a l'estranger</div>
+      <div class="value">39,3%</div>
+      <div class="delta">2026: 29,3% → 2041: 39,3%</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <h2>Evolució i composició de la població de les Illes Balears</h2>
+        <div class="caption">Per lloc de naixement · 2026–2041</div>
+      </div>
+      <div class="controls">
+        <div class="seg">
+          <button id="btnAbs" class="active">Valors absoluts</button>
+          <button id="btnIdx">Índex (2026 = 100)</button>
+        </div>
+      </div>
+    </div>
+    <div class="chart-box" id="chartLine"><canvas id="canvasLine"></canvas></div>
+    <div class="legend-note">
+      <span><span class="dot" style="background:#16323A"></span>Total població</span>
+      <span><span class="dot" style="background:#7C97A0"></span>Nascuts a Espanya</span>
+      <span><span class="dot" style="background:#D97A53"></span>Nascuts a l'estranger</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <h2>Posició de les Illes Balears entre comunitats autònomes</h2>
+        <div class="caption" id="rangeCaption">Variació de població prevista entre 2026 i 2041</div>
+      </div>
+    </div>
+    <div class="chart-box" id="chartBar"><canvas id="canvasBar"></canvas></div>
+    <div class="legend-note">
+      <span><span class="dot" style="background:#D97A53"></span>Illes Balears</span>
+      <span><span class="dot" style="background:#16323A"></span>Espanya (total)</span>
+      <span><span class="dot" style="background:#A9BCC1"></span>Resta de CCAA</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <h2>Pressió demogràfica sobre els serveis públics</h2>
+        <div class="caption" id="depCaption">Taxa de dependència · Illes Balears vs Espanya · 2026–2041</div>
+      </div>
+      <div class="controls">
+        <div class="seg">
+          <button id="btnDep" class="active">Taxa de dependència</button>
+          <button id="btnAge">Índex d'envelliment</button>
+        </div>
+      </div>
+    </div>
+    <div class="chart-box" id="chartDepLine"><canvas id="canvasDepLine"></canvas></div>
+    <div class="legend-note">
+      <span><span class="dot" style="background:#D97A53"></span>Illes Balears</span>
+      <span><span class="dot" style="background:#16323A"></span>Espanya (total)</span>
+    </div>
+    <div style="height:22px;"></div>
+    <div class="card-head" style="margin-bottom:14px;">
+      <div>
+        <div class="caption" id="depRankCaption">Posició de les CCAA el 2041 · Taxa de dependència</div>
+      </div>
+    </div>
+    <div class="chart-box" id="chartDepBar"><canvas id="canvasDepBar"></canvas></div>
+    <div class="legend-note">
+      <span><span class="dot" style="background:#D97A53"></span>Illes Balears</span>
+      <span><span class="dot" style="background:#16323A"></span>Espanya (total)</span>
+      <span><span class="dot" style="background:#A9BCC1"></span>Resta de CCAA</span>
+    </div>
+    <p class="legend-note" style="margin-top:10px;" id="depInsight"></p>
+    <p class="legend-note" style="margin-top:8px;"><strong>Índex d'envelliment:</strong> persones de 65 anys o més per cada 100 persones menors de 16 anys (Pob.&gt;64 / Pob.&lt;16 × 100). Per sobre de 100 vol dir més gent gran que infants; és un indicador de relleu generacional. <strong>Taxa de dependència:</strong> persones menors de 16 o majors de 64 anys —considerades fora de l'edat potencialment activa— per cada 100 persones de 16 a 64 anys; equival, per tant, al percentatge de dependents respecte la població en edat activa. És una mesura demogràfica basada en llindars d'edat, no el mateix concepte que la situació de dependència legal/assistencial de gent gran o persones amb discapacitat.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <h2>Creixement de la població vs. creixement del nombre de llars</h2>
+        <div class="caption" id="houseCaption">Variació 2026-2041 (%) · Font: INE, Projecció de Llars 2026-2041</div>
+      </div>
+      <div class="controls">
+        <div class="seg">
+          <button id="btnHousePct" class="active">Variació (%)</button>
+          <button id="btnHouseAbs">Mida mitjana de la llar</button>
+        </div>
+      </div>
+    </div>
+    <div class="chart-box" id="chartHouse"><canvas id="canvasHouse"></canvas></div>
+    <div class="legend-note">
+      <span><span class="dot" style="background:#16323A"></span><span id="houseLegend1">Creixement població</span></span>
+      <span><span class="dot" style="background:#A9BCC1"></span><span id="houseLegend2">Creixement llars</span></span>
+      <span><span class="dot" style="background:#D97A53"></span>Illes Balears (en ambdues sèries)</span>
+    </div>
+  </div>
+
+  <footer>Font: INE — Proyección de la población de España 2026-2076 i Proyección de hogares 2026-2041, resultats per comunitats autònomes. Dades consultades el 18/06/2026.</footer>
+
+</div>
+
+<script>
+function fmt(n){ return n.toLocaleString('ca-ES', {maximumFractionDigits:1}); }
+function fmtSize(n){ return n.toLocaleString('ca-ES', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+
+/* ============ DADES ============ */
+var dataAbs = [
+  {year:"2026", total:1260004, espanya:890524, estranger:369480},
+  {year:"2027", total:1279816, espanya:889895, estranger:389921},
+  {year:"2028", total:1299454, espanya:889368, estranger:410086},
+  {year:"2029", total:1318375, espanya:888963, estranger:429412},
+  {year:"2030", total:1336236, espanya:888683, estranger:447553},
+  {year:"2031", total:1352858, espanya:888524, estranger:464333},
+  {year:"2032", total:1368186, espanya:888469, estranger:479716},
+  {year:"2033", total:1382253, espanya:888494, estranger:493759},
+  {year:"2034", total:1395151, espanya:888569, estranger:506582},
+  {year:"2035", total:1407010, espanya:888665, estranger:518345},
+  {year:"2036", total:1417968, espanya:888751, estranger:529217},
+  {year:"2037", total:1428167, espanya:888800, estranger:539366},
+  {year:"2038", total:1437732, espanya:888785, estranger:548947},
+  {year:"2039", total:1446770, espanya:888682, estranger:558088},
+  {year:"2040", total:1455366, espanya:888469, estranger:566898},
+  {year:"2041", total:1463575, espanya:888120, estranger:575455}
+];
+var base = dataAbs[0];
+var dataIdx = dataAbs.map(function(d){
+  return {
+    year: d.year,
+    total: +(d.total/base.total*100).toFixed(1),
+    espanya: +(d.espanya/base.espanya*100).toFixed(1),
+    estranger: +(d.estranger/base.estranger*100).toFixed(1)
+  };
+});
+
+var regions = [
+  {name:"Espanya (total)", type:"national", values:{2026:49590099,2031:51782446,2036:53083941,2041:53841249}, dep2041:63.95208, age2041:233.626577},
+  {name:"Andalusia", type:"normal", values:{2026:8748692,2031:8982884,2036:9097488,2041:9140631}, dep2041:66.693189, age2041:224.76235},
+  {name:"Aragó", type:"normal", values:{2026:1381809,2031:1423249,2036:1447320,2041:1460000}, dep2041:66.655289, age2041:242.761715},
+  {name:"Astúries", type:"normal", values:{2026:1021569,2031:1024534,2036:1017954,2041:1005041}, dep2041:82.155731, age2041:391.670748},
+  {name:"Balears (Illes)", type:"ib", values:{2026:1260004,2031:1352858,2036:1417968,2041:1463575}, dep2041:51.974269, age2041:193.108116},
+  {name:"Canàries", type:"normal", values:{2026:2275864,2031:2393228,2036:2462828,2041:2499617}, dep2041:59.147127, age2041:297.493425},
+  {name:"Cantàbria", type:"normal", values:{2026:597067,2031:607592,2036:610452,2041:608662}, dep2041:75.090345, age2041:341.222741},
+  {name:"Castella i Lleó", type:"normal", values:{2026:2418632,2031:2429289,2036:2418917,2041:2395586}, dep2041:82.770234, age2041:330.915995},
+  {name:"Castella-La Manxa", type:"normal", values:{2026:2154740,2031:2236977,2036:2291590,2041:2327836}, dep2041:67.759699, age2041:212.03953},
+  {name:"Catalunya", type:"normal", values:{2026:8201735,2031:8696415,2036:9007014,2041:9205897}, dep2041:57.206215, age2041:208.605053},
+  {name:"Comunitat Valenciana", type:"normal", values:{2026:5528180,2031:5953172,2036:6234587,2041:6432276}, dep2041:62.980819, age2041:211.858054},
+  {name:"Extremadura", type:"normal", values:{2026:1055342,2031:1043382,2036:1027126,2041:1007474}, dep2041:78.972156, age2041:301.396747},
+  {name:"Galícia", type:"normal", values:{2026:2728034,2031:2746942,2036:2737999,2041:2713065}, dep2041:77.646616, age2041:358.497058},
+  {name:"Madrid", type:"normal", values:{2026:7169262,2031:7668743,2036:7989420,2041:8204833}, dep2041:57.409021, age2041:204.095158},
+  {name:"Múrcia", type:"normal", values:{2026:1605736,2031:1697400,2036:1758727,2041:1802032}, dep2041:60.842365, age2041:174.414173},
+  {name:"Navarra", type:"normal", values:{2026:689973,2031:720638,2036:740457,2041:753129}, dep2041:64.995592, age2041:220.664156},
+  {name:"País Basc", type:"normal", values:{2026:2252857,2031:2291896,2036:2304092,2041:2298897}, dep2041:71.271384, age2041:280.549227},
+  {name:"La Rioja", type:"normal", values:{2026:329499,2031:340847,2036:347965,2041:352356}, dep2041:67.754765, age2041:245.334858},
+  {name:"Ceuta", type:"normal", values:{2026:84208,2031:84133,2036:83609,2041:82559}, dep2041:49.906018, age2041:174.056129},
+  {name:"Melilla", type:"normal", values:{2026:86896,2031:88268,2036:88429,2041:87781}, dep2041:47.921994, age2041:182.921908}
+];
+
+var depAgeYears = ["2026","2027","2028","2029","2030","2031","2032","2033","2034","2035","2036","2037","2038","2039","2040","2041"];
+var depIB  = [45.29801,45.059314,44.930087,44.930418,45.138159,45.295894,45.526372,45.850254,46.262515,46.76577,47.417025,48.18087,49.021753,49.935951,50.981213,51.974269];
+var depNat = [53.108093,53.095795,53.169405,53.373914,53.839589,54.241749,54.706504,55.300824,55.972918,56.790467,57.724336,58.798144,59.954329,61.167491,62.541722,63.95208];
+var ageIB  = [122.964014,127.73895,132.519015,137.649277,142.828179,148.213921,153.676163,159.240354,164.308677,169.281621,173.740602,178.209212,182.669981,186.402611,189.702226,193.108116];
+var ageNat = [154.369946,160.284354,166.377803,172.733692,179.116641,185.662541,192.253622,198.928524,204.957575,210.336552,215.207431,219.493317,223.595125,227.314487,230.577444,233.626577];
+
+function colorFor(type){
+  if(type === "ib") return "#D97A53";
+  if(type === "national") return "#16323A";
+  return "#A9BCC1";
+}
+
+function computeVariation(fromYear, toYear){
+  return regions.map(function(r){
+    var vFrom = r.values[fromYear];
+    var vTo = r.values[toYear];
+    var variation = (vTo - vFrom) / vFrom * 100;
+    return {region: r.name, type: r.type, variation: +variation.toFixed(2)};
+  }).sort(function(a,b){ return b.variation - a.variation; });
+}
+
+/* ============ GRÀFIC 1: línia ============ */
+var ctxLine = document.getElementById('canvasLine').getContext('2d');
+var lineChart = new Chart(ctxLine, {
+  type: 'line',
+  data: {
+    labels: dataAbs.map(function(d){ return d.year; }),
+    datasets: [
+      {
+        label: "Nascuts a l'estranger",
+        data: dataAbs.map(function(d){ return d.estranger; }),
+        borderColor: "#D97A53",
+        backgroundColor: "rgba(217,122,83,0.14)",
+        fill: true,
+        borderWidth: 3,
+        pointRadius: 3,
+        tension: 0.15
+      },
+      {
+        label: "Total població",
+        data: dataAbs.map(function(d){ return d.total; }),
+        borderColor: "#16323A",
+        backgroundColor: "transparent",
+        fill: false,
+        borderWidth: 2.5,
+        pointRadius: 2,
+        tension: 0.15
+      },
+      {
+        label: "Nascuts a Espanya",
+        data: dataAbs.map(function(d){ return d.espanya; }),
+        borderColor: "#7C97A0",
+        backgroundColor: "transparent",
+        fill: false,
+        borderWidth: 2,
+        pointRadius: 2,
+        tension: 0.15
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: {mode:'index', intersect:false},
+    plugins: {
+      legend: {display:false},
+      tooltip: {
+        callbacks: {
+          label: function(ctx){ return ctx.dataset.label + ': ' + fmt(ctx.parsed.y); }
+        }
+      }
+    },
+    scales: {
+      y: {
+        title: {display:true, text:'Persones', font:{size:12}},
+        ticks: { callback: function(v){ return fmt(v); }, font:{size:11} },
+        grid: { color: "#DCE3E1" }
+      },
+      x: {
+        ticks: { font:{size:11} },
+        grid: { display:false }
+      }
+    }
+  }
+});
+
+document.getElementById('btnAbs').addEventListener('click', function(){
+  lineChart.data.datasets[0].data = dataAbs.map(function(d){ return d.estranger; });
+  lineChart.data.datasets[1].data = dataAbs.map(function(d){ return d.total; });
+  lineChart.data.datasets[2].data = dataAbs.map(function(d){ return d.espanya; });
+  lineChart.options.scales.y.title.text = 'Persones';
+  lineChart.update();
+  this.classList.add('active');
+  document.getElementById('btnIdx').classList.remove('active');
+});
+document.getElementById('btnIdx').addEventListener('click', function(){
+  lineChart.data.datasets[0].data = dataIdx.map(function(d){ return d.estranger; });
+  lineChart.data.datasets[1].data = dataIdx.map(function(d){ return d.total; });
+  lineChart.data.datasets[2].data = dataIdx.map(function(d){ return d.espanya; });
+  lineChart.options.scales.y.title.text = 'Índex (2026 = 100)';
+  lineChart.update();
+  this.classList.add('active');
+  document.getElementById('btnAbs').classList.remove('active');
+});
+
+/* ============ GRÀFIC 2: barres horitzontals ============ */
+var ctxBar = document.getElementById('canvasBar').getContext('2d');
+var initial = computeVariation(2026, 2041);
+var barChart = new Chart(ctxBar, {
+  type: 'bar',
+  data: {
+    labels: initial.map(function(d){ return d.region; }),
+    datasets: [{
+      data: initial.map(function(d){ return d.variation; }),
+      backgroundColor: initial.map(function(d){ return colorFor(d.type); }),
+      borderWidth: 0,
+      borderRadius: 3,
+      barPercentage: 0.7
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {display:false},
+      tooltip: {
+        callbacks: {
+          label: function(ctx){ return fmt(ctx.parsed.x) + '%'; }
+        }
+      }
+    },
+    scales: {
+      x: {
+        title: {display:true, text:'Variació de població (%)', font:{size:12}},
+        ticks: { callback: function(v){ return fmt(v) + '%'; }, font:{size:11} },
+        grid: { color: "#DCE3E1" }
+      },
+      y: {
+        ticks: { font:{size:12}, color:"#16323A" },
+        grid: { display:false }
+      }
+    }
+  }
+});
+
+/* ============ GRÀFIC 3a: línia taxa dependència / envelliment ============ */
+var depAgeMeta = {
+  dep: {
+    label: "Taxa de dependència",
+    lineCaption: "Taxa de dependència · Illes Balears vs Espanya · 2026–2041",
+    rankCaption: "Posició de les CCAA el 2041 · Taxa de dependència",
+    axisTitle: "Taxa de dependència",
+    ib: depIB, nat: depNat,
+    insight: "Balears (51,97) seria la taxa de dependència més baixa de totes les CCAA \"regionals\" el 2041 — només Ceuta i Melilla hi queden per sota."
+  },
+  age: {
+    label: "Índex d'envelliment",
+    lineCaption: "Índex d'envelliment · Illes Balears vs Espanya · 2026–2041",
+    rankCaption: "Posició de les CCAA el 2041 · Índex d'envelliment",
+    axisTitle: "Índex d'envelliment",
+    ib: ageIB, nat: ageNat,
+    insight: "Balears (193,1) és la 3a posició més baixa el 2041, per darrere de Múrcia (174,4) i Ceuta (174,1) — aquí l'efecte migratori no és l'únic factor en joc."
+  }
+};
+var currentIndicator = 'dep';
+
+var ctxDepLine = document.getElementById('canvasDepLine').getContext('2d');
+var depLineChart = new Chart(ctxDepLine, {
+  type: 'line',
+  data: {
+    labels: depAgeYears,
+    datasets: [
+      {
+        label: "Illes Balears",
+        data: depIB,
+        borderColor: "#D97A53",
+        backgroundColor: "rgba(217,122,83,0.12)",
+        fill: true,
+        borderWidth: 3,
+        pointRadius: 2,
+        tension: 0.15
+      },
+      {
+        label: "Espanya (total)",
+        data: depNat,
+        borderColor: "#16323A",
+        backgroundColor: "transparent",
+        fill: false,
+        borderWidth: 2.5,
+        pointRadius: 2,
+        tension: 0.15
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: {mode:'index', intersect:false},
+    plugins: {
+      legend: {display:false},
+      tooltip: { callbacks: { label: function(ctx){ return ctx.dataset.label + ': ' + fmt(ctx.parsed.y); } } }
+    },
+    scales: {
+      y: {
+        title: {display:true, text: depAgeMeta.dep.axisTitle, font:{size:12}},
+        ticks: { callback: function(v){ return fmt(v); }, font:{size:11} },
+        grid: { color: "#DCE3E1" }
+      },
+      x: { ticks: { font:{size:11} }, grid: { display:false } }
+    }
+  }
+});
+
+/* ============ GRÀFIC 3b: rànquing CCAA 2041 ============ */
+function computeIndicatorRanking(indicator){
+  return regions.map(function(r){
+    return {region: r.name, type: r.type, value: indicator === 'dep' ? r.dep2041 : r.age2041};
+  }).sort(function(a,b){ return b.value - a.value; });
+}
+
+var ctxDepBar = document.getElementById('canvasDepBar').getContext('2d');
+var initialRank = computeIndicatorRanking('dep');
+var depBarChart = new Chart(ctxDepBar, {
+  type: 'bar',
+  data: {
+    labels: initialRank.map(function(d){ return d.region; }),
+    datasets: [{
+      data: initialRank.map(function(d){ return d.value; }),
+      backgroundColor: initialRank.map(function(d){ return colorFor(d.type); }),
+      borderWidth: 0,
+      borderRadius: 3,
+      barPercentage: 0.7
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {display:false},
+      tooltip: { callbacks: { label: function(ctx){ return fmt(ctx.parsed.x); } } }
+    },
+    scales: {
+      x: {
+        title: {display:true, text: depAgeMeta.dep.axisTitle, font:{size:12}},
+        ticks: { callback: function(v){ return fmt(v); }, font:{size:11} },
+        grid: { color: "#DCE3E1" }
+      },
+      y: { ticks: { font:{size:12}, color:"#16323A" }, grid: { display:false } }
+    }
+  }
+});
+
+function setIndicator(indicator){
+  currentIndicator = indicator;
+  var meta = depAgeMeta[indicator];
+
+  depLineChart.data.datasets[0].data = meta.ib;
+  depLineChart.data.datasets[1].data = meta.nat;
+  depLineChart.options.scales.y.title.text = meta.axisTitle;
+  depLineChart.update();
+
+  var rank = computeIndicatorRanking(indicator);
+  depBarChart.data.labels = rank.map(function(d){ return d.region; });
+  depBarChart.data.datasets[0].data = rank.map(function(d){ return d.value; });
+  depBarChart.data.datasets[0].backgroundColor = rank.map(function(d){ return colorFor(d.type); });
+  depBarChart.options.scales.x.title.text = meta.axisTitle;
+  depBarChart.update();
+
+  document.getElementById('depCaption').textContent = meta.lineCaption;
+  document.getElementById('depRankCaption').textContent = meta.rankCaption;
+  document.getElementById('depInsight').textContent = meta.insight;
+}
+setIndicator('dep');
+
+document.getElementById('btnDep').addEventListener('click', function(){
+  setIndicator('dep');
+  this.classList.add('active');
+  document.getElementById('btnAge').classList.remove('active');
+});
+document.getElementById('btnAge').addEventListener('click', function(){
+  setIndicator('age');
+  this.classList.add('active');
+  document.getElementById('btnDep').classList.remove('active');
+});
+
+/* ============ GRÀFIC 4: població vs llars ============ */
+var houseData = [
+  {name:"Espanya (total)", type:"national", pop:8.6, llars:11.1, size2026:2.49, size2041:2.43},
+  {name:"Andalusia", type:"normal", pop:4.5, llars:10.4, size2026:2.52, size2041:2.38},
+  {name:"Aragó", type:"normal", pop:5.7, llars:8.5, size2026:2.38, size2041:2.32},
+  {name:"Astúries", type:"normal", pop:-1.6, llars:2.8, size2026:2.20, size2041:2.10},
+  {name:"Balears (Illes)", type:"ib", pop:16.2, llars:14.7, size2026:2.66, size2041:2.69},
+  {name:"Canàries", type:"normal", pop:9.8, llars:11.5, size2026:2.60, size2041:2.56},
+  {name:"Cantàbria", type:"normal", pop:1.9, llars:7.9, size2026:2.37, size2041:2.23},
+  {name:"Castella i Lleó", type:"normal", pop:-1.0, llars:3.9, size2026:2.24, size2041:2.13},
+  {name:"Castella-La Manxa", type:"normal", pop:8.0, llars:11.9, size2026:2.50, size2041:2.41},
+  {name:"Catalunya", type:"normal", pop:12.2, llars:11.7, size2026:2.54, size2041:2.55},
+  {name:"Comunitat Valenciana", type:"normal", pop:16.4, llars:16.0, size2026:2.48, size2041:2.48},
+  {name:"Extremadura", type:"normal", pop:-4.5, llars:3.2, size2026:2.33, size2041:2.16},
+  {name:"Galícia", type:"normal", pop:-0.5, llars:5.0, size2026:2.38, size2041:2.25},
+  {name:"Madrid", type:"normal", pop:14.4, llars:14.3, size2026:2.59, size2041:2.59},
+  {name:"Múrcia", type:"normal", pop:12.2, llars:20.7, size2026:2.71, size2041:2.51},
+  {name:"Navarra", type:"normal", pop:9.2, llars:13.1, size2026:2.51, size2041:2.42},
+  {name:"País Basc", type:"normal", pop:2.0, llars:6.4, size2026:2.33, size2041:2.23},
+  {name:"La Rioja", type:"normal", pop:6.9, llars:12.2, size2026:2.34, size2041:2.23},
+  {name:"Ceuta", type:"normal", pop:-2.0, llars:6.1, size2026:3.09, size2041:2.85},
+  {name:"Melilla", type:"normal", pop:1.0, llars:11.1, size2026:3.15, size2041:2.86}
+];
+
+var housePctOrder = houseData.slice().sort(function(a,b){ return (b.pop - b.llars) - (a.pop - a.llars); });
+var houseSizeOrder = houseData.slice().sort(function(a,b){ return (b.size2041 - b.size2026) - (a.size2041 - a.size2026); });
+
+function ibBg(d, solid, faded){ return d.type === "ib" ? solid : faded; }
+
+var houseMode = 'pct';
+var ctxHouse = document.getElementById('canvasHouse').getContext('2d');
+var houseChart = new Chart(ctxHouse, {
+  type: 'bar',
+  data: {
+    labels: housePctOrder.map(function(d){ return d.name; }),
+    datasets: [
+      {
+        label: "Creixement població",
+        data: housePctOrder.map(function(d){ return d.pop; }),
+        backgroundColor: housePctOrder.map(function(d){ return ibBg(d, "#D97A53", "#16323A"); }),
+        borderWidth: 0, borderRadius: 3, barPercentage: 0.8
+      },
+      {
+        label: "Creixement llars",
+        data: housePctOrder.map(function(d){ return d.llars; }),
+        backgroundColor: housePctOrder.map(function(d){ return ibBg(d, "rgba(217,122,83,0.5)", "#A9BCC1"); }),
+        borderWidth: 0, borderRadius: 3, barPercentage: 0.8
+      }
+    ]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {display:false},
+      tooltip: {
+        callbacks: {
+          label: function(ctx){
+            var suffix = houseMode === 'pct' ? '%' : '';
+            var val = houseMode === 'size' ? fmtSize(ctx.parsed.x) : fmt(ctx.parsed.x);
+            return ctx.dataset.label + ': ' + val + suffix;
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        title: {display:true, text:'Variació 2026-2041 (%)', font:{size:12}},
+        ticks: { callback: function(v){ return fmt(v) + '%'; }, font:{size:11} },
+        grid: { color: "#DCE3E1" }
+      },
+      y: {
+        ticks: { font:{size:12}, color:"#16323A" },
+        grid: { display:false }
+      }
+    }
+  }
+});
+
+document.getElementById('btnHousePct').addEventListener('click', function(){
+  houseMode = 'pct';
+  houseChart.data.labels = housePctOrder.map(function(d){ return d.name; });
+  houseChart.data.datasets[0].label = 'Creixement població';
+  houseChart.data.datasets[0].data = housePctOrder.map(function(d){ return d.pop; });
+  houseChart.data.datasets[0].backgroundColor = housePctOrder.map(function(d){ return ibBg(d, "#D97A53", "#16323A"); });
+  houseChart.data.datasets[1].label = 'Creixement llars';
+  houseChart.data.datasets[1].data = housePctOrder.map(function(d){ return d.llars; });
+  houseChart.data.datasets[1].backgroundColor = housePctOrder.map(function(d){ return ibBg(d, "rgba(217,122,83,0.5)", "#A9BCC1"); });
+  houseChart.options.scales.x.title.text = 'Variació 2026-2041 (%)';
+  houseChart.options.scales.x.ticks.callback = function(v){ return fmt(v) + '%'; };
+  houseChart.update();
+  document.getElementById('houseCaption').textContent = 'Variació 2026-2041 (%) · Font: INE, Projecció de Llars 2026-2041';
+  document.getElementById('houseLegend1').textContent = 'Creixement població';
+  document.getElementById('houseLegend2').textContent = 'Creixement llars';
+  this.classList.add('active');
+  document.getElementById('btnHouseAbs').classList.remove('active');
+});
+document.getElementById('btnHouseAbs').addEventListener('click', function(){
+  houseMode = 'size';
+  houseChart.data.labels = houseSizeOrder.map(function(d){ return d.name; });
+  houseChart.data.datasets[0].label = 'Mida mitjana 2026';
+  houseChart.data.datasets[0].data = houseSizeOrder.map(function(d){ return d.size2026; });
+  houseChart.data.datasets[0].backgroundColor = houseSizeOrder.map(function(d){ return ibBg(d, "rgba(217,122,83,0.5)", "#A9BCC1"); });
+  houseChart.data.datasets[1].label = 'Mida mitjana 2041';
+  houseChart.data.datasets[1].data = houseSizeOrder.map(function(d){ return d.size2041; });
+  houseChart.data.datasets[1].backgroundColor = houseSizeOrder.map(function(d){ return ibBg(d, "#D97A53", "#16323A"); });
+  houseChart.options.scales.x.title.text = 'Mida mitjana de la llar (persones)';
+  houseChart.options.scales.x.ticks.callback = function(v){ return fmtSize(v); };
+  houseChart.update();
+  document.getElementById('houseCaption').textContent = 'Mida mitjana de la llar, 2026 vs 2041 · Font: INE, Projecció de Llars 2026-2041';
+  document.getElementById('houseLegend1').textContent = 'Mida mitjana 2026';
+  document.getElementById('houseLegend2').textContent = 'Mida mitjana 2041';
+  this.classList.add('active');
+  document.getElementById('btnHousePct').classList.remove('active');
+});
+</script>
+
+</body>
+</html>
